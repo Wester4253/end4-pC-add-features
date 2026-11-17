@@ -873,6 +873,12 @@ ContentPage {
                     checked: Config.options.bar.aiUsage.codexEnabled
                     onCheckedChanged: Config.options.bar.aiUsage.codexEnabled = checked
                 }
+                ConfigSwitch {
+                    buttonIcon: "smart_toy"
+                    text: Translation.tr("Oh My Pi")
+                    checked: Config.options.bar.aiUsage.ompEnabled
+                    onCheckedChanged: Config.options.bar.aiUsage.ompEnabled = checked
+                }
             }
         }
 

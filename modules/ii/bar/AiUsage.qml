@@ -14,7 +14,9 @@ MouseArea {
         if (Config.options.bar.aiUsage.claudeEnabled)
             result.push({ name: "Claude Code", icon: "claude-symbolic", usage: ClaudeUsage, codex: false });
         if (Config.options.bar.aiUsage.codexEnabled)
-            result.push({ name: "Codex", icon: "openai-symbolic", usage: CodexUsage, codex: true });
+            result.push({ name: "Codex", icon: "openai-symbolic", usage: CodexUsage, kind: "codex" });
+        if (Config.options.bar.aiUsage.ompEnabled)
+            result.push({ name: "Oh My Pi", icon: "omp-symbolic", usage: OmpUsage, kind: "omp" });
         return result;
     }
 
@@ -34,7 +36,7 @@ MouseArea {
             model: root.providers
             delegate: GridLayout {
                 required property var modelData
-                readonly property bool active: modelData.codex ? modelData.usage.available : modelData.usage.activeSessions > 0
+                readonly property bool active: modelData.kind === "codex" ? modelData.usage.available : modelData.usage.activeSessions > 0
                 readonly property color providerColor: active ? root.contentColor : (root.contentColorOverridden ? Qt.alpha(root.contentColor, 0.6) : Appearance.colors.colSubtext)
                 columns: root.vertical ? 1 : 2
                 columnSpacing: 5
@@ -50,7 +52,7 @@ MouseArea {
                 }
                 StyledText {
                     Layout.alignment: Qt.AlignCenter
-                    text: modelData.codex && !modelData.usage.available ? "—" : `${Math.round(modelData.usage.percentage * 100)}%`
+                    text: modelData.kind === "codex" && !modelData.usage.available ? "—" : `${Math.round(modelData.usage.percentage * 100)}%`
                     font.pixelSize: root.vertical ? Appearance.font.pixelSize.smaller : Appearance.font.pixelSize.small
                     color: providerColor
                 }

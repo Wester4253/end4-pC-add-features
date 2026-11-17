@@ -307,6 +307,76 @@ Singleton {
             "key_get_description": Translation.tr("**Instructions**: Log into Mistral account, go to Keys on the sidebar, click Create new key"),
             "api_format": "mistral",
         }),
+        // NVIDIA NIM: OpenAI-compatible API at integrate.api.nvidia.com.
+        // The key is shared across all NIM models (key_id "nim").
+        // Also, if the user has Oh My Pi installed, its keyring credential is
+        // reused automatically (see scripts/ai/show-nim-models.sh and the
+        // nimKeyHint mechanism in requester.makeRequest).
+        "nim-glm-5.3-flash": aiModelComponent.createObject(this, {
+            "name": "NIM: GLM 5.3 Flash",
+            "icon": "nvidia-symbolic",
+            "description": Translation.tr("Online | NVIDIA NIM | Z.ai's fast model. Great default: quick, capable, handles tool calls and thinking"),
+            "homepage": "https://build.nvidia.com/z-ai",
+            "endpoint": "https://integrate.api.nvidia.com/v1/chat/completions",
+            "model": "z-ai/glm-5.3-flash",
+            "requires_key": true,
+            "key_id": "nim",
+            "key_get_link": "https://build.nvidia.com/explore/discover",
+            "key_get_description": Translation.tr("**Pricing**: free with rate limits.\n\n**Instructions**: Log in at build.nvidia.com with your NVIDIA account and get an API key (starts with `nvapi-`). If you use Oh My Pi and logged in there, the key is picked up automatically."),
+            "api_format": "openai",
+        }),
+        "nim-deepseek-v4.1-flash": aiModelComponent.createObject(this, {
+            "name": "NIM: DeepSeek V4.1 Flash",
+            "icon": "nvidia-symbolic",
+            "description": Translation.tr("Online | NVIDIA NIM | DeepSeek's fast model with a 1M context window and thinking support"),
+            "homepage": "https://build.nvidia.com/deepseek-ai",
+            "endpoint": "https://integrate.api.nvidia.com/v1/chat/completions",
+            "model": "deepseek-ai/deepseek-v4.1-flash",
+            "requires_key": true,
+            "key_id": "nim",
+            "key_get_link": "https://build.nvidia.com/explore/discover",
+            "key_get_description": Translation.tr("**Pricing**: free with rate limits.\n\n**Instructions**: Log in at build.nvidia.com with your NVIDIA account and get an API key (starts with `nvapi-`). If you use Oh My Pi and logged in there, the key is picked up automatically."),
+            "api_format": "openai",
+        }),
+        "nim-nemotron-ultra": aiModelComponent.createObject(this, {
+            "name": "NIM: Nemotron 3 Ultra",
+            "icon": "nvidia-symbolic",
+            "description": Translation.tr("Online | NVIDIA NIM | NVIDIA's largest Nemotron (550B, MoE). Slower but the strongest NIM reasoning model"),
+            "homepage": "https://build.nvidia.com/nvidia",
+            "endpoint": "https://integrate.api.nvidia.com/v1/chat/completions",
+            "model": "nvidia/nemotron-3-ultra-550b-a55b",
+            "requires_key": true,
+            "key_id": "nim",
+            "key_get_link": "https://build.nvidia.com/explore/discover",
+            "key_get_description": Translation.tr("**Pricing**: free with rate limits.\n\n**Instructions**: Log in at build.nvidia.com with your NVIDIA account and get an API key (starts with `nvapi-`). If you use Oh My Pi and logged in there, the key is picked up automatically."),
+            "api_format": "openai",
+        }),
+        "nim-nemotron-lightning": aiModelComponent.createObject(this, {
+            "name": "NIM: Nemotron 3.5 Lightning",
+            "icon": "nvidia-symbolic",
+            "description": Translation.tr("Online | NVIDIA NIM | NVIDIA's fast Nemotron (30B MoE). Speedy everyday model"),
+            "homepage": "https://build.nvidia.com/nvidia",
+            "endpoint": "https://integrate.api.nvidia.com/v1/chat/completions",
+            "model": "nvidia/nemotron-3.5-lightning-30b-a3b",
+            "requires_key": true,
+            "key_id": "nim",
+            "key_get_link": "https://build.nvidia.com/explore/discover",
+            "key_get_description": Translation.tr("**Pricing**: free with rate limits.\n\n**Instructions**: Log in at build.nvidia.com with your NVIDIA account and get an API key (starts with `nvapi-`). If you use Oh My Pi and logged in there, the key is picked up automatically."),
+            "api_format": "openai",
+        }),
+        "nim-minimax-m3.1-flash": aiModelComponent.createObject(this, {
+            "name": "NIM: MiniMax M3.1 Flash",
+            "icon": "nvidia-symbolic",
+            "description": Translation.tr("Online | NVIDIA NIM | MiniMax's fast model"),
+            "homepage": "https://build.nvidia.com/minimaxai",
+            "endpoint": "https://integrate.api.nvidia.com/v1/chat/completions",
+            "model": "minimaxai/minimax-m3.1-flash",
+            "requires_key": true,
+            "key_id": "nim",
+            "key_get_link": "https://build.nvidia.com/explore/discover",
+            "key_get_description": Translation.tr("**Pricing**: free with rate limits.\n\n**Instructions**: Log in at build.nvidia.com with your NVIDIA account and get an API key (starts with `nvapi-`). If you use Oh My Pi and logged in there, the key is picked up automatically."),
+            "api_format": "openai",
+        }),
     }
     property var modelList: Object.keys(root.models)
     property var currentModelId: {
@@ -347,6 +417,7 @@ Singleton {
         }
         setModel(currentModelId, false, false); // Do necessary setup for model
         root.addUserModels() // Config onReadyChanged above might not fire if config is loaded before this service
+        root.importNimKeyFromOmp()
     }
 
     function guessModelLogo(model) {
@@ -454,6 +525,78 @@ Singleton {
         getOllamaModels.running = true;
         getVllmModels.running = false;
         getVllmModels.running = true;
+    }
+
+    // NVIDIA NIM models from the user's key. Duplicates the curated entries above
+    // only if the API reports IDs not already present (keyed by their safe name).
+    property bool _nimModelsLoaded: false
+    Process {
+        id: getNimModels
+        running: true
+        command: ["bash", "-c", `${Directories.scriptPath}/ai/show-nim-models.sh`.replace(/file:\/\//, "")]
+        stdout: SplitParser {
+            onRead: data => {
+                try {
+                    if (data.length === 0) return;
+                    const dataJson = JSON.parse(data);
+                    const nimKeyLink = "https://build.nvidia.com/explore/discover";
+                    const nimKeyDesc = Translation.tr("**Pricing**: free with rate limits.\n\n**Instructions**: Log in at build.nvidia.com with your NVIDIA account and get an API key (starts with `nvapi-`). If you use Oh My Pi and logged in there, the key is picked up automatically.");
+                    let added = false;
+                    dataJson.forEach(model => {
+                        const safeModelName = root.safeModelName("nim-" + model);
+                        if (root.models[safeModelName] !== undefined) return;
+                        const cleanModel = model.includes('/') ? model.split('/').pop() : model;
+                        root.addModel(safeModelName, {
+                            "name": `NIM: ${guessModelName(cleanModel)}`,
+                            "icon": "nvidia-symbolic",
+                            "description": Translation.tr("Online | NVIDIA NIM | %1").arg(model),
+                            "homepage": `https://build.nvidia.com/model/${model}`,
+                            "endpoint": "https://integrate.api.nvidia.com/v1/chat/completions",
+                            "model": model,
+                            "requires_key": true,
+                            "key_id": "nim",
+                            "key_get_link": nimKeyLink,
+                            "key_get_description": nimKeyDesc,
+                            "api_format": "openai",
+                        });
+                        added = true;
+                    });
+                    if (added) {
+                        root.modelList = Object.keys(root.models);
+                        root._nimModelsLoaded = true;
+                    }
+                } catch (e) {
+                    console.log("Could not fetch NVIDIA NIM models:", e);
+                }
+            }
+        }
+    }
+
+    // NIM key: reuse Oh My Pi's stored NVIDIA credential if the shell keyring
+    // has none, so users who logged in via omp don't have to enter it again.
+    Process {
+        id: nimKeyImporter
+        command: ["bash", "-c", `sqlite3 "$HOME/.omp/agent/agent.db" "select json_extract(data,'\\$.key') from auth_credentials where provider='nvidia' limit 1" 2>/dev/null || true`]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const key = text.trim();
+                if (key.length > 0 && key.startsWith("nvapi-")) {
+                    KeyringStorage.setNestedField(["apiKeys", "nim"], key);
+                    console.log("[AI] Imported NVIDIA NIM key from Oh My Pi keyring");
+                }
+            }
+        }
+    }
+    function importNimKeyFromOmp() {
+        if (!models["nim-glm-5.3-flash"] || !apiKeysLoaded) return;
+        if (apiKeys["nim"]?.length > 0) return;
+        nimKeyImporter.running = true;
+    }
+    Connections {
+        target: KeyringStorage
+        function onLoadedChanged() {
+            if (KeyringStorage.loaded) root.importNimKeyFromOmp();
+        }
     }
 
     Process {

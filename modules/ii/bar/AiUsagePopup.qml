@@ -71,7 +71,14 @@ StyledPopup {
                             font.pixelSize: Appearance.font.pixelSize.smaller
                             color: Appearance.colors.colOnSurfaceVariant
                             opacity: 0.6
-                            text: provider.modelData.codex && !provider.modelData.usage.available ? Translation.tr("No usage data yet") : root.formatReset(provider.modelData.usage)
+                            text: {
+                                const u = provider.modelData.usage;
+                                const needsData = provider.modelData.kind === "codex";
+                                if (needsData && !u.available) return Translation.tr("No usage data yet");
+                                if (provider.modelData.kind === "omp")
+                                    return Translation.tr("%1 requests/min of %2").arg(u.requestsLastMinute ?? 0).arg(u.rpmLimit ?? 40);
+                                return root.formatReset(u);
+                            }
                         }
                     }
 
@@ -84,7 +91,11 @@ StyledPopup {
                         font.pixelSize: Appearance.font.pixelSize.huge
                         font.weight: Font.Bold
                         color: Appearance.colors.colPrimary
-                        text: provider.modelData.codex && !provider.modelData.usage.available ? "—" : `${Math.round(provider.modelData.usage.percentage * 100)}%`
+                        text: {
+                            const u = provider.modelData.usage;
+                            const needsData = provider.modelData.kind === "codex";
+                            return (needsData && !u.available) ? "—" : `${Math.round(u.percentage * 100)}%`;
+                        }
                     }
                 }
 
@@ -99,23 +110,23 @@ StyledPopup {
                     Layout.leftMargin: 8
                     Layout.rightMargin: 8
                     icon: "token"
-                    visible: !provider.modelData.codex
+                    visible: provider.modelData.kind !== "codex" && provider.modelData.kind !== "omp"
                     label: Translation.tr("Tokens (estimate)")
-                    value: provider.modelData.codex ? "" : `${root.formatTokens(provider.modelData.usage.tokens)} / ${root.formatTokens(provider.modelData.usage.tokenLimit)}`
+                    value: provider.modelData.kind === "codex" ? "" : `${root.formatTokens(provider.modelData.usage.tokens)} / ${root.formatTokens(provider.modelData.usage.tokenLimit)}`
                 }
 
                 StyledPopupValueRow {
                     Layout.fillWidth: true
                     Layout.leftMargin: 8
                     Layout.rightMargin: 8
-                    visible: !provider.modelData.codex && provider.modelData.usage.activeSessions === 0
+                    visible: provider.modelData.kind !== "codex" && provider.modelData.usage.activeSessions === 0
                     icon: "bedtime"
                     label: Translation.tr("No active sessions")
                     value: ""
                 }
 
                 Repeater {
-                    model: provider.modelData.codex ? [] : provider.modelData.usage.sessions
+                    model: provider.modelData.kind === "codex" ? [] : (provider.modelData.usage.sessions ?? [])
                     delegate: StyledPopupValueRow {
                         required property var modelData
                         Layout.fillWidth: true
@@ -130,10 +141,35 @@ StyledPopup {
                     Layout.fillWidth: true
                     Layout.leftMargin: 8
                     Layout.rightMargin: 8
-                    visible: provider.modelData.codex && provider.modelData.usage.weeklyResetsAt > 0
+                    visible: provider.modelData.kind === "codex" && provider.modelData.usage.weeklyResetsAt > 0
                     icon: "date_range"
                     label: Translation.tr("Weekly usage")
-                    value: provider.modelData.codex ? `${Math.round(provider.modelData.usage.weeklyPercentage * 100)}%` : ""
+                    value: provider.modelData.kind === "codex" ? `${Math.round(provider.modelData.usage.weeklyPercentage * 100)}%` : ""
+                }
+
+                // 5h token total (Oh My Pi)
+                StyledPopupValueRow {
+                    Layout.fillWidth: true
+                    Layout.leftMargin: 8
+                    Layout.rightMargin: 8
+                    visible: provider.modelData.kind === "omp" && provider.modelData.usage.tokens > 0
+                    icon: "token"
+                    label: Translation.tr("Tokens (5h window)")
+                    value: root.formatTokens(provider.modelData.usage.tokens)
+                }
+
+                // Top models (Oh My Pi)
+                Repeater {
+                    model: provider.modelData.kind === "omp" ? (provider.modelData.usage.models ?? []).slice(0, 3) : []
+                    delegate: StyledPopupValueRow {
+                        required property var modelData
+                        Layout.fillWidth: true
+                        Layout.leftMargin: 8
+                        Layout.rightMargin: 8
+                        icon: "token"
+                        label: modelData[0]
+                        value: root.formatTokens(modelData[1])
+                    }
                 }
             }
         }
