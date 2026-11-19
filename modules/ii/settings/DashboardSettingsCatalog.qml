@@ -150,6 +150,8 @@ QtObject {
         "bar:Show Profiles": { type: "switch", get: () => Config.options.bar.dynamicIsland.showProfiles, set: v => { Config.options.bar.dynamicIsland.showProfiles = v; } },
         "bar:Show Focus": { type: "switch", get: () => Config.options.bar.dynamicIsland.showFocus, set: v => { Config.options.bar.dynamicIsland.showFocus = v; } },
         "bar:Show System Info": { type: "switch", get: () => Config.options.bar.dynamicIsland.showSystemInfo, set: v => { Config.options.bar.dynamicIsland.showSystemInfo = v; } },
+        "bar:Show File Search": { type: "switch", get: () => Config.options.bar.dynamicIsland.showFileSearch, set: v => { Config.options.bar.dynamicIsland.showFileSearch = v; } },
+        "bar:Show Calculator": { type: "switch", get: () => Config.options.bar.dynamicIsland.showCalculator, set: v => { Config.options.bar.dynamicIsland.showCalculator = v; } },
         "bar:Bar style": { type: "select", get: () => Config.options.bar.cornerStyle, set: v => { Config.options.bar.cornerStyle = v; }, options: [{ displayName: Translation.tr("Hug"), icon: "line_curve", value: 0 }, { displayName: Translation.tr("Split Hug"), icon: "splitscreen", value: 6 }, { displayName: Translation.tr("Float"), icon: "view_day", value: 1 }, { displayName: Translation.tr("Islands"), icon: "crop_3_2", value: 2 }, { displayName: Translation.tr("M3"), icon: "interests", value: 3 }, { displayName: Translation.tr("M3 Hug"), icon: "category", value: 4 }, { displayName: Translation.tr("Panel"), icon: "toolbar", value: 5 }] },
         "bar:Group color": { type: "select", get: () => Config.options.bar.groupColor, set: v => { Config.options.bar.groupColor = v; }, get options() { return ["primaryContainer", "secondaryContainer", "tertiaryContainer", "layer1", "layer0"].map(name => ({ value: name, color: roleColor(name) })); } },
         "interface:Football/Goal file": { type: "text", get: () => Config.options.sidebar.football.goalSoundPath, set: v => { Config.options.sidebar.football.goalSoundPath = v; } },
@@ -331,7 +333,9 @@ QtObject {
                 { type: "toggle", key: "bar:Show Updates", title: Translation.tr("System Updates"), icon: "system_update" },
                 { type: "toggle", key: "bar:Show Profiles", title: Translation.tr("Profiles"), icon: "save" },
                 { type: "toggle", key: "bar:Show Focus", title: Translation.tr("Focus Mode"), icon: "center_focus_strong" },
-                { type: "toggle", key: "bar:Show System Info", title: Translation.tr("System Info"), icon: "info" }
+                { type: "toggle", key: "bar:Show System Info", title: Translation.tr("System Info"), icon: "info" },
+                { type: "toggle", key: "bar:Show File Search", title: Translation.tr("File Search"), icon: "search" },
+                { type: "toggle", key: "bar:Show Calculator", title: Translation.tr("Calculator"), icon: "calculate" }
             ]
         },
         {
