@@ -616,6 +616,10 @@ Singleton {
                     property bool showSystemInfo: true
                     property bool showFileSearch: true
                     property bool showCalculator: true
+                    property bool showTodo: true
+                    property bool showNotes: true
+                    property bool showTranslator: true
+                    property bool showSongRec: true
                 }
 
                 property JsonObject projectDisplay: JsonObject {

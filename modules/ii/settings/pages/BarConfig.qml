@@ -621,6 +621,30 @@ ContentPage {
                         checked: Config.options.bar.dynamicIsland.showCalculator
                         onCheckedChanged: { Config.options.bar.dynamicIsland.showCalculator = checked; }
                     }
+                    ConfigSwitch {
+                        buttonIcon: "checklist"
+                        text: Translation.tr("Todo / Tasks")
+                        checked: Config.options.bar.dynamicIsland.showTodo
+                        onCheckedChanged: { Config.options.bar.dynamicIsland.showTodo = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "notes"
+                        text: Translation.tr("Notes")
+                        checked: Config.options.bar.dynamicIsland.showNotes
+                        onCheckedChanged: { Config.options.bar.dynamicIsland.showNotes = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "translate"
+                        text: Translation.tr("Translator")
+                        checked: Config.options.bar.dynamicIsland.showTranslator
+                        onCheckedChanged: { Config.options.bar.dynamicIsland.showTranslator = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "music_note"
+                        text: Translation.tr("Music Recognition")
+                        checked: Config.options.bar.dynamicIsland.showSongRec
+                        onCheckedChanged: { Config.options.bar.dynamicIsland.showSongRec = checked; }
+                    }
                 }
             }
         }

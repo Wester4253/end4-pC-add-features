@@ -376,6 +376,34 @@ Item {
                     DiExpandedCalculatorSection { di: root.di }
                 }
 
+                // Todo Section
+                Revealer {
+                    reveal: Config.options.bar.dynamicIsland.showTodo
+                    Layout.fillWidth: true
+                    DiExpandedTodoSection { di: root.di }
+                }
+
+                // Notes Section
+                Revealer {
+                    reveal: Config.options.bar.dynamicIsland.showNotes
+                    Layout.fillWidth: true
+                    DiExpandedNotesSection { di: root.di }
+                }
+
+                // Translator Section
+                Revealer {
+                    reveal: Config.options.bar.dynamicIsland.showTranslator
+                    Layout.fillWidth: true
+                    DiExpandedTranslatorSection { di: root.di }
+                }
+
+                // Music Recognition (SongRec) Section
+                Revealer {
+                    reveal: Config.options.bar.dynamicIsland.showSongRec
+                    Layout.fillWidth: true
+                    DiExpandedSongRecSection { di: root.di }
+                }
+
                 Item { Layout.fillWidth: true; implicitHeight: 16 }
             }
         }
