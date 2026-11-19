@@ -617,6 +617,31 @@ Singleton {
                     property bool showFileSearch: true
                     property bool showCalculator: true
                 }
+
+                property JsonObject projectDisplay: JsonObject {
+                    property bool enable: true
+                    property string hotkey: "SUPER+P"
+                    // Display
+                    property bool showMirrorMode: true
+                    property bool showExtendMode: true
+                    property bool showResolutionSelector: true
+                    property bool showScaleSelector: true
+                    property bool showRotationSelector: true
+                    property bool showVRRToggle: true
+                    property bool showDPMSButton: true
+                    // Audio
+                    property bool showOutputDevices: true
+                    property bool showInputDevices: true
+                    property bool showVolumeSliders: true
+                    property bool showDefaultDeviceToggle: true
+                    // Brightness/Color
+                    property bool showBrightnessSlider: true
+                    property bool showExternalBrightness: true
+                    property bool showNightLight: true
+                    property bool showNightLightPresets: true
+                    property bool showColorProfile: true
+                    property bool showGammaSliders: true
+                }
                 property JsonObject divider: JsonObject {
                     property string style: "rect" // rect - dot - space
                     property int spacing: 20

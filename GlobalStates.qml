@@ -34,6 +34,7 @@ Singleton {
     property bool superReleaseMightTrigger: true
     property bool wallpaperSelectorOpen: false
     property bool workspaceShowNumbers: false
+    property bool projectDisplayOpen: false
     property var settingsTarget: null
 
     function openSettingsAt(pageId, label, section, subsection) {
@@ -158,6 +159,14 @@ Singleton {
         description: "Toggles centered wallpaper"
         onPressed: {
             Config.options.background.centeredWallpaper = !Config.options.background.centeredWallpaper
+        }
+    }
+
+    CompositorGlobalShortcut {
+        name: "projectDisplay"
+        description: "Toggle Project Display & Audio flyout (Super+P)"
+        onPressed: {
+            root.projectDisplayOpen = !root.projectDisplayOpen;
         }
     }
 }

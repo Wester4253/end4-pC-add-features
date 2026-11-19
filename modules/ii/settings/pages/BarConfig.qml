@@ -626,6 +626,145 @@ ContentPage {
         }
 
         ContentSection {
+            icon: "monitor"
+            shape: MaterialShape.Shape.Arch
+            title: Translation.tr("Project Display")
+            visible: page.isUsed("projectDisplay")
+
+            GroupedList {
+                ConfigSwitch {
+                    buttonIcon: "monitor"
+                    text: Translation.tr("Enable Project Display")
+                    checked: Config.options.projectDisplay.enable
+                    onCheckedChanged: { Config.options.projectDisplay.enable = checked; }
+                }
+            }
+
+            ContentSubsection {
+                Layout.topMargin: 10
+                title: Translation.tr("Display")
+                GroupedList {
+                    ConfigSwitch {
+                        buttonIcon: "screen_mirror"
+                        text: Translation.tr("Mirror Mode")
+                        checked: Config.options.projectDisplay.showMirrorMode
+                        onCheckedChanged: { Config.options.projectDisplay.showMirrorMode = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "screen_share"
+                        text: Translation.tr("Extend Mode")
+                        checked: Config.options.projectDisplay.showExtendMode
+                        onCheckedChanged: { Config.options.projectDisplay.showExtendMode = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "fullscreen"
+                        text: Translation.tr("Resolution Selector")
+                        checked: Config.options.projectDisplay.showResolutionSelector
+                        onCheckedChanged: { Config.options.projectDisplay.showResolutionSelector = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "aspect_ratio"
+                        text: Translation.tr("Scale Selector")
+                        checked: Config.options.projectDisplay.showScaleSelector
+                        onCheckedChanged: { Config.options.projectDisplay.showScaleSelector = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "rotate_right"
+                        text: Translation.tr("Rotation Selector")
+                        checked: Config.options.projectDisplay.showRotationSelector
+                        onCheckedChanged: { Config.options.projectDisplay.showRotationSelector = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "sync"
+                        text: Translation.tr("VRR Toggle")
+                        checked: Config.options.projectDisplay.showVRRToggle
+                        onCheckedChanged: { Config.options.projectDisplay.showVRRToggle = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "bedtime"
+                        text: Translation.tr("DPMS Sleep Button")
+                        checked: Config.options.projectDisplay.showDPMSButton
+                        onCheckedChanged: { Config.options.projectDisplay.showDPMSButton = checked; }
+                    }
+                }
+            }
+
+            ContentSubsection {
+                Layout.topMargin: 10
+                title: Translation.tr("Audio")
+                GroupedList {
+                    ConfigSwitch {
+                        buttonIcon: "speaker"
+                        text: Translation.tr("Output Devices")
+                        checked: Config.options.projectDisplay.showOutputDevices
+                        onCheckedChanged: { Config.options.projectDisplay.showOutputDevices = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "mic"
+                        text: Translation.tr("Input Devices")
+                        checked: Config.options.projectDisplay.showInputDevices
+                        onCheckedChanged: { Config.options.projectDisplay.showInputDevices = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "volume_up"
+                        text: Translation.tr("Volume Sliders")
+                        checked: Config.options.projectDisplay.showVolumeSliders
+                        onCheckedChanged: { Config.options.projectDisplay.showVolumeSliders = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "check_circle"
+                        text: Translation.tr("Default Device Toggle")
+                        checked: Config.options.projectDisplay.showDefaultDeviceToggle
+                        onCheckedChanged: { Config.options.projectDisplay.showDefaultDeviceToggle = checked; }
+                    }
+                }
+            }
+
+            ContentSubsection {
+                Layout.topMargin: 10
+                title: Translation.tr("Brightness & Color")
+                GroupedList {
+                    ConfigSwitch {
+                        buttonIcon: "brightness_6"
+                        text: Translation.tr("Brightness Slider")
+                        checked: Config.options.projectDisplay.showBrightnessSlider
+                        onCheckedChanged: { Config.options.projectDisplay.showBrightnessSlider = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "tv"
+                        text: Translation.tr("External Brightness (DDC/CI)")
+                        checked: Config.options.projectDisplay.showExternalBrightness
+                        onCheckedChanged: { Config.options.projectDisplay.showExternalBrightness = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "nightlight"
+                        text: Translation.tr("Night Light")
+                        checked: Config.options.projectDisplay.showNightLight
+                        onCheckedChanged: { Config.options.projectDisplay.showNightLight = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "wb_sunny"
+                        text: Translation.tr("Night Light Presets")
+                        checked: Config.options.projectDisplay.showNightLightPresets
+                        onCheckedChanged: { Config.options.projectDisplay.showNightLightPresets = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "color_lens"
+                        text: Translation.tr("Color Profile")
+                        checked: Config.options.projectDisplay.showColorProfile
+                        onCheckedChanged: { Config.options.projectDisplay.showColorProfile = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "tune"
+                        text: Translation.tr("Gamma Sliders")
+                        checked: Config.options.projectDisplay.showGammaSliders
+                        onCheckedChanged: { Config.options.projectDisplay.showGammaSliders = checked; }
+                    }
+                }
+            }
+        }
+
+        ContentSection {
             icon: "notifications"
             shape: MaterialShape.Shape.Bun
             title: Translation.tr("Notifications")
