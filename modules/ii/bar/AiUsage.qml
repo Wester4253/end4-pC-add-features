@@ -17,10 +17,20 @@ MouseArea {
             result.push({ name: "Codex", icon: "openai-symbolic", usage: CodexUsage, kind: "codex" });
         if (Config.options.bar.aiUsage.ompEnabled)
             result.push({ name: "Oh My Pi", icon: "omp-symbolic", usage: OmpUsage, kind: "omp" });
+        if (Config.options.bar.aiUsage.ottoEnabled)
+            result.push({ name: "Otto", icon: "otto-symbolic", usage: OttoUsage, kind: "otto" });
+        if (Config.options.bar.aiUsage.localLLMEnabled)
+            result.push({ name: "Local LLMs", icon: "memory", usage: LocalLLMUsage, kind: "local" });
         return result;
     }
 
-    visible: providers.length > 0
+    // Hide entirely when every enabled provider says there is nothing to show
+    // (e.g. Otto enabled but the daemon is unreachable or has no agents).
+    visible: providers.some(provider => {
+        if (provider.kind === "otto") return provider.usage.totalSessions > 0;
+        if (provider.kind === "local") return provider.usage.available;
+        return true;
+    })
     implicitWidth: providers.length === 0 ? 0 : (vertical ? Appearance.sizes.verticalBarWidth : content.implicitWidth + 12)
     implicitHeight: providers.length === 0 ? 0 : (vertical ? content.implicitHeight + 10 : Appearance.sizes.barHeight)
     hoverEnabled: !Config.options.bar.tooltips.clickToShow
@@ -35,8 +45,11 @@ MouseArea {
         Repeater {
             model: root.providers
             delegate: GridLayout {
+                id: delegateRoot
+
                 required property var modelData
-                readonly property bool active: modelData.kind === "codex" ? modelData.usage.available : modelData.usage.activeSessions > 0
+                readonly property bool needsData: modelData.kind === "codex" || (modelData.kind === "otto" && !modelData.usage.available) || (modelData.kind === "local" && !modelData.usage.available)
+                readonly property bool active: needsData ? modelData.usage.available : (modelData.kind === "local" ? modelData.usage.totalRunning > 0 : modelData.usage.activeSessions > 0)
                 readonly property color providerColor: active ? root.contentColor : (root.contentColorOverridden ? Qt.alpha(root.contentColor, 0.6) : Appearance.colors.colSubtext)
                 columns: root.vertical ? 1 : 2
                 columnSpacing: 5
@@ -52,7 +65,12 @@ MouseArea {
                 }
                 StyledText {
                     Layout.alignment: Qt.AlignCenter
-                    text: modelData.kind === "codex" && !modelData.usage.available ? "—" : `${Math.round(modelData.usage.percentage * 100)}%`
+                    text: {
+                        const u = modelData.usage;
+                        if (delegateRoot.needsData && !u.available) return "—";
+                        if (modelData.kind === "local") return u.totalRunning > 0 ? `${u.totalRunning} running` : "idle";
+                        return `${Math.round(u.percentage * 100)}%`;
+                    }
                     font.pixelSize: root.vertical ? Appearance.font.pixelSize.smaller : Appearance.font.pixelSize.small
                     color: providerColor
                 }

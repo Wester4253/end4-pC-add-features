@@ -28,10 +28,39 @@ Loader {
             StyledText {
                 id: layoutCodeText
                 horizontalAlignment: Text.AlignHCenter
-                text: WM.compositor === "niri" ? NiriXkb.currentLayoutCode : HyprlandXkb.currentLayoutCode
+                text: WM.compositor === "niri" ? NiriXkb.currentLayoutCode : root.currentLayoutCode
                 font.pixelSize: Appearance.font.pixelSize.small
                 color: root.contentColor
                 animateChange: true
+            }
+        }
+    }
+
+    // Current layout code - falls back to HyprlandXkb, with initial read from Hyprland
+    property string currentLayoutCode: HyprlandXkb.currentLayoutCode
+
+    // Read initial layout on startup if not already set
+    Component.onCompleted: {
+        if (!HyprlandXkb.currentLayoutCode && WM.compositor === "hyprland") {
+            Hyprland.sendMessage("j/devices")
+                .then(result => {
+                    if (result && result.keyboards) {
+                        const kb = result.keyboards.find(k => k.main);
+                        if (kb && kb.active_keymap) {
+                            currentLayoutCode = kb.active_keymap.split(":")[0] || kb.active_keymap;
+                        }
+                    }
+                })
+                .catch(() => {});
+        }
+    }
+
+    // Listen for layout changes
+    Connections {
+        target: HyprlandXkb
+        function onCurrentLayoutCodeChanged() {
+            if (HyprlandXkb.currentLayoutCode) {
+                currentLayoutCode = HyprlandXkb.currentLayoutCode;
             }
         }
     }

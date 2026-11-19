@@ -563,15 +563,88 @@ Singleton {
                     property bool claudeEnabled: true
                     property bool codexEnabled: true
                     property bool ompEnabled: true
+                    property bool ottoEnabled: true
+                    // Otto daemon address, e.g. "tcp://192.168.1.40:6868".
+                    // Empty means localhost:6868 (a local daemon).
+                    property string ottoHost: ""
+                    // Only needed if the daemon requires a password. Prefer
+                    // leaving empty for a LAN daemon behind a firewall.
+                    property string ottoPassword: ""
+                    property bool localLLMEnabled: true
+                    property string ollamaHost: ""
+                    property string lmstudioHost: ""
+                    property string vllmHost: ""
+                    property string textgenHost: ""
                     property int tokenLimit: 1000000
                     property int updateInterval: 60
                 }
 
                 property JsonObject dynamicIsland: JsonObject {
-                    property string visualizerStyle: "dots" // "dots", "wave", "none"
+                    property string visualizerStyle: "dots" // "dots", "wave", "none", "bars", "mirror"
                     property bool showMediaControls: false
                     property string leftWidget: "none"
                     property string rightWidget: "none"
+                    property bool enableExpanded: true
+                    property string expandDirection: "auto" // "auto", "up", "down"
+                    // Expanded panel section visibility
+                    property bool showAiUsage: true
+                    property bool showSystemStats: true
+                    property bool showWeather: true
+                    property bool showCalendar: true
+                    property bool showWorldClock: true
+                    property bool showMedia: true
+                    property bool showVisualizer: true
+                    property bool showNotifications: true
+                    property bool showQuickActions: true
+                    property bool showClipboard: true
+                    property bool showActiveWindow: true
+                    property bool showNetwork: true
+                    property bool showBluetooth: true
+                    property bool showTimers: true
+                    property bool showRecording: true
+                    property bool showVPN: true
+                    property bool showDisk: true
+                    property bool showGPU: true
+                    property bool showProcesses: true
+                    property bool showDocker: true
+                    property bool showServices: true
+                    property bool showLogs: true
+                    property bool showShortcuts: true
+                    property bool showUpdates: true
+                    property bool showProfiles: true
+                    property bool showFocus: true
+                    property bool showSystemInfo: true
+                    property bool showFileSearch: true
+                    property bool showCalculator: true
+                    property bool showTodo: true
+                    property bool showNotes: true
+                    property bool showTranslator: true
+                    property bool showSongRec: true
+                }
+
+                property JsonObject projectDisplay: JsonObject {
+                    property bool enable: true
+                    property string hotkey: "SUPER+P"
+                    // Display
+                    property bool showMirrorMode: true
+                    property bool showExtendMode: true
+                    property bool showResolutionSelector: true
+                    property bool showScaleSelector: true
+                    property bool showRotationSelector: true
+                    property bool showVRRToggle: true
+                    property bool showDPMSButton: true
+                    // Audio
+                    property bool showOutputDevices: true
+                    property bool showInputDevices: true
+                    property bool showVolumeSliders: true
+                    property bool showDefaultDeviceToggle: true
+                    // Brightness/Color
+                    property bool showBrightnessSlider: true
+                    property bool showExternalBrightness: true
+                    property bool showNightLight: true
+                    property bool showNightLightPresets: true
+                    property bool showColorProfile: true
+                    property bool showGammaSliders: true
                 }
                 property JsonObject divider: JsonObject {
                     property string style: "rect" // rect - dot - space

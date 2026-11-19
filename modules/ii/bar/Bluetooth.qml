@@ -27,9 +27,11 @@ MouseArea {
     readonly property bool isLow: hasBattery
         && batteryPercentage <= Config.options.battery.low / 100
     readonly property string deviceName: connectedDevice?.name ?? ""
+    // Use a local property to avoid triggering adapter power on during init
+    property bool _adapterEnabled: BluetoothStatus.enabled
     readonly property string stateIcon: BluetoothStatus.connected
         ? Icons.getBluetoothDeviceMaterialSymbol(connectedDevice?.icon || "")
-        : BluetoothStatus.enabled ? "bluetooth" : "bluetooth_disabled"
+        : root._adapterEnabled ? "bluetooth" : "bluetooth_disabled"
     readonly property string percentageText: `${Math.round(batteryPercentage * 100)}%`
 
     visible: BluetoothStatus.available
@@ -50,6 +52,14 @@ MouseArea {
     onClicked: mouse => {
         if (mouse.button === Qt.RightButton) {
             GlobalStates.requestBluetoothDialog();
+        }
+    }
+
+    // Sync adapter state only on user interaction, not on init
+    Connections {
+        target: BluetoothStatus
+        function onEnabledChanged() {
+            root._adapterEnabled = BluetoothStatus.enabled;
         }
     }
 
