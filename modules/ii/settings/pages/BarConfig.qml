@@ -404,8 +404,10 @@ ContentPage {
                         onSelected: newValue => { Config.options.bar.dynamicIsland.visualizerStyle = newValue; }
                         options: [
                             { displayName: Translation.tr(""),      icon: "block",       value: "none" },
+                            { displayName: Translation.tr("Bars"),   icon: "equalizer",     value: "bars" },
                             { displayName: Translation.tr("Dots"),  icon: "steppers",     value: "dots" },
-                            { displayName: Translation.tr("Wave"),  icon: "ssid_chart",   value: "wave" }
+                            { displayName: Translation.tr("Wave"),  icon: "ssid_chart",   value: "wave" },
+                            { displayName: Translation.tr("Mirror"), icon: "flip",         value: "mirror" }
                         ]
                     }
                     ConfigSwitch {
@@ -413,6 +415,199 @@ ContentPage {
                         text: Translation.tr("Show media controls")
                         checked: Config.options.bar.dynamicIsland.showMediaControls
                         onCheckedChanged: { Config.options.bar.dynamicIsland.showMediaControls = checked; }
+                    }
+                }
+            }
+
+            ContentSubsection {
+                Layout.topMargin: 10
+                title: Translation.tr("Expanded Panel")
+                GroupedList {
+                    ConfigSwitch {
+                        buttonIcon: "expand_more"
+                        text: Translation.tr("Enable expanded panel")
+                        checked: Config.options.bar.dynamicIsland.enableExpanded
+                        onCheckedChanged: { Config.options.bar.dynamicIsland.enableExpanded = checked; }
+                    }
+                    ConfigComboBox {
+                        text: Translation.tr("Expand direction")
+                        buttonIcon: "vertical_align_bottom"
+                        currentValue: Config.options.bar.dynamicIsland.expandDirection
+                        onSelected: newValue => { Config.options.bar.dynamicIsland.expandDirection = newValue; }
+                        options: [
+                            { displayName: Translation.tr("Auto (bar position)"), icon: "auto_mode", value: "auto" },
+                            { displayName: Translation.tr("Downward"), icon: "keyboard_arrow_down", value: "down" },
+                            { displayName: Translation.tr("Upward"), icon: "keyboard_arrow_up", value: "up" }
+                        ]
+                    }
+                }
+            }
+
+            ContentSubsection {
+                Layout.topMargin: 10
+                title: Translation.tr("Panel Sections")
+                GroupedList {
+                    ConfigSwitch {
+                        buttonIcon: "neurology"
+                        text: Translation.tr("AI Usage")
+                        checked: Config.options.bar.dynamicIsland.showAiUsage
+                        onCheckedChanged: { Config.options.bar.dynamicIsland.showAiUsage = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "memory"
+                        text: Translation.tr("System Stats")
+                        checked: Config.options.bar.dynamicIsland.showSystemStats
+                        onCheckedChanged: { Config.options.bar.dynamicIsland.showSystemStats = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "partly_cloudy_day"
+                        text: Translation.tr("Weather")
+                        checked: Config.options.bar.dynamicIsland.showWeather
+                        onCheckedChanged: { Config.options.bar.dynamicIsland.showWeather = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "calendar_month"
+                        text: Translation.tr("Calendar")
+                        checked: Config.options.bar.dynamicIsland.showCalendar
+                        onCheckedChanged: { Config.options.bar.dynamicIsland.showCalendar = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "public"
+                        text: Translation.tr("World Clock")
+                        checked: Config.options.bar.dynamicIsland.showWorldClock
+                        onCheckedChanged: { Config.options.bar.dynamicIsland.showWorldClock = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "music_note"
+                        text: Translation.tr("Media")
+                        checked: Config.options.bar.dynamicIsland.showMedia
+                        onCheckedChanged: { Config.options.bar.dynamicIsland.showMedia = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "graphic_eq"
+                        text: Translation.tr("Visualizer")
+                        checked: Config.options.bar.dynamicIsland.showVisualizer
+                        onCheckedChanged: { Config.options.bar.dynamicIsland.showVisualizer = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "notifications"
+                        text: Translation.tr("Notifications")
+                        checked: Config.options.bar.dynamicIsland.showNotifications
+                        onCheckedChanged: { Config.options.bar.dynamicIsland.showNotifications = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "bolt"
+                        text: Translation.tr("Quick Actions")
+                        checked: Config.options.bar.dynamicIsland.showQuickActions
+                        onCheckedChanged: { Config.options.bar.dynamicIsland.showQuickActions = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "content_copy"
+                        text: Translation.tr("Clipboard")
+                        checked: Config.options.bar.dynamicIsland.showClipboard
+                        onCheckedChanged: { Config.options.bar.dynamicIsland.showClipboard = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "open_in_new"
+                        text: Translation.tr("Active Window")
+                        checked: Config.options.bar.dynamicIsland.showActiveWindow
+                        onCheckedChanged: { Config.options.bar.dynamicIsland.showActiveWindow = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "wifi"
+                        text: Translation.tr("Network")
+                        checked: Config.options.bar.dynamicIsland.showNetwork
+                        onCheckedChanged: { Config.options.bar.dynamicIsland.showNetwork = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "bluetooth"
+                        text: Translation.tr("Bluetooth")
+                        checked: Config.options.bar.dynamicIsland.showBluetooth
+                        onCheckedChanged: { Config.options.bar.dynamicIsland.showBluetooth = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "timer"
+                        text: Translation.tr("Timers")
+                        checked: Config.options.bar.dynamicIsland.showTimers
+                        onCheckedChanged: { Config.options.bar.dynamicIsland.showTimers = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "screen_record"
+                        text: Translation.tr("Screen Recording")
+                        checked: Config.options.bar.dynamicIsland.showRecording
+                        onCheckedChanged: { Config.options.bar.dynamicIsland.showRecording = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "vpn_lock"
+                        text: Translation.tr("VPN")
+                        checked: Config.options.bar.dynamicIsland.showVPN
+                        onCheckedChanged: { Config.options.bar.dynamicIsland.showVPN = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "hard_drive"
+                        text: Translation.tr("Disk / Storage")
+                        checked: Config.options.bar.dynamicIsland.showDisk
+                        onCheckedChanged: { Config.options.bar.dynamicIsland.showDisk = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "memory"
+                        text: Translation.tr("GPU")
+                        checked: Config.options.bar.dynamicIsland.showGPU
+                        onCheckedChanged: { Config.options.bar.dynamicIsland.showGPU = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "task_alt"
+                        text: Translation.tr("Processes")
+                        checked: Config.options.bar.dynamicIsland.showProcesses
+                        onCheckedChanged: { Config.options.bar.dynamicIsland.showProcesses = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "whatshot"
+                        text: Translation.tr("Docker")
+                        checked: Config.options.bar.dynamicIsland.showDocker
+                        onCheckedChanged: { Config.options.bar.dynamicIsland.showDocker = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "build"
+                        text: Translation.tr("Services")
+                        checked: Config.options.bar.dynamicIsland.showServices
+                        onCheckedChanged: { Config.options.bar.dynamicIsland.showServices = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "terminal"
+                        text: Translation.tr("Debug Logs")
+                        checked: Config.options.bar.dynamicIsland.showLogs
+                        onCheckedChanged: { Config.options.bar.dynamicIsland.showLogs = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "keyboard"
+                        text: Translation.tr("Keybindings")
+                        checked: Config.options.bar.dynamicIsland.showShortcuts
+                        onCheckedChanged: { Config.options.bar.dynamicIsland.showShortcuts = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "system_update"
+                        text: Translation.tr("System Updates")
+                        checked: Config.options.bar.dynamicIsland.showUpdates
+                        onCheckedChanged: { Config.options.bar.dynamicIsland.showUpdates = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "save"
+                        text: Translation.tr("Profiles")
+                        checked: Config.options.bar.dynamicIsland.showProfiles
+                        onCheckedChanged: { Config.options.bar.dynamicIsland.showProfiles = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "center_focus_strong"
+                        text: Translation.tr("Focus Mode")
+                        checked: Config.options.bar.dynamicIsland.showFocus
+                        onCheckedChanged: { Config.options.bar.dynamicIsland.showFocus = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "info"
+                        text: Translation.tr("System Info")
+                        checked: Config.options.bar.dynamicIsland.showSystemInfo
+                        onCheckedChanged: { Config.options.bar.dynamicIsland.showSystemInfo = checked; }
                     }
                 }
             }
@@ -878,6 +1073,126 @@ ContentPage {
                     text: Translation.tr("Oh My Pi")
                     checked: Config.options.bar.aiUsage.ompEnabled
                     onCheckedChanged: Config.options.bar.aiUsage.ompEnabled = checked
+                }
+                ConfigSwitch {
+                    buttonIcon: "hub"
+                    text: Translation.tr("Otto")
+                    checked: Config.options.bar.aiUsage.ottoEnabled
+                    onCheckedChanged: Config.options.bar.aiUsage.ottoEnabled = checked
+                }
+                ConfigTextArea {
+                    id: ottoHostField
+                    Layout.fillWidth: true
+                    buttonIcon: "lan"
+                    text: Translation.tr("Otto daemon host")
+                    placeholderText: Translation.tr("e.g. tcp://192.168.1.40:6868, empty = localhost")
+                    value: Config.options.bar.aiUsage.ottoHost
+                    onValueChanged: ottoHostDebounceTimer.restart()
+
+                    Timer {
+                        id: ottoHostDebounceTimer
+                        interval: 600
+                        repeat: false
+                        onTriggered: {
+                            Config.options.bar.aiUsage.ottoHost = ottoHostField.value.trim();
+                        }
+                    }
+                }
+                ConfigTextArea {
+                    id: ottoPasswordField
+                    Layout.fillWidth: true
+                    buttonIcon: "password"
+                    text: Translation.tr("Otto daemon password")
+                    placeholderText: Translation.tr("leave empty if the daemon has no password")
+                    value: Config.options.bar.aiUsage.ottoPassword
+                    onValueChanged: ottoPasswordDebounceTimer.restart()
+
+                    Timer {
+                        id: ottoPasswordDebounceTimer
+                        interval: 600
+                        repeat: false
+                        onTriggered: {
+                            Config.options.bar.aiUsage.ottoPassword = ottoPasswordField.value;
+                        }
+                    }
+                }
+                ConfigSwitch {
+                    buttonIcon: "memory"
+                    text: Translation.tr("Local LLMs")
+                    checked: Config.options.bar.aiUsage.localLLMEnabled
+                    onCheckedChanged: Config.options.bar.aiUsage.localLLMEnabled = checked
+                }
+                ConfigTextArea {
+                    id: ollamaHostField
+                    Layout.fillWidth: true
+                    buttonIcon: "memory"
+                    text: Translation.tr("Ollama host")
+                    placeholderText: Translation.tr("e.g. http://localhost:11434")
+                    value: Config.options.bar.aiUsage.ollamaHost
+                    onValueChanged: ollamaHostDebounceTimer.restart()
+
+                    Timer {
+                        id: ollamaHostDebounceTimer
+                        interval: 600
+                        repeat: false
+                        onTriggered: {
+                            Config.options.bar.aiUsage.ollamaHost = ollamaHostField.value.trim();
+                        }
+                    }
+                }
+                ConfigTextArea {
+                    id: lmstudioHostField
+                    Layout.fillWidth: true
+                    buttonIcon: "memory"
+                    text: Translation.tr("LM Studio host")
+                    placeholderText: Translation.tr("e.g. http://localhost:1234")
+                    value: Config.options.bar.aiUsage.lmstudioHost
+                    onValueChanged: lmstudioHostDebounceTimer.restart()
+
+                    Timer {
+                        id: lmstudioHostDebounceTimer
+                        interval: 600
+                        repeat: false
+                        onTriggered: {
+                            Config.options.bar.aiUsage.lmstudioHost = lmstudioHostField.value.trim();
+                        }
+                    }
+                }
+                ConfigTextArea {
+                    id: vllmHostField
+                    Layout.fillWidth: true
+                    buttonIcon: "memory"
+                    text: Translation.tr("vLLM host")
+                    placeholderText: Translation.tr("e.g. http://localhost:8000")
+                    value: Config.options.bar.aiUsage.vllmHost
+                    onValueChanged: vllmHostDebounceTimer.restart()
+
+                    Timer {
+                        id: vllmHostDebounceTimer
+                        interval: 600
+                        repeat: false
+                        onTriggered: {
+                            Config.options.bar.aiUsage.vllmHost = vllmHostField.value.trim();
+                        }
+                    }
+                }
+                ConfigTextArea {
+                    id: textgenHostField
+                    Layout.fillWidth: true
+                    buttonIcon: "memory"
+                    text: Translation.tr("Text-gen-webui host")
+                    placeholderText: Translation.tr("e.g. http://localhost:5000")
+                    value: Config.options.bar.aiUsage.textgenHost
+                    onValueChanged: textgenHostDebounceTimer.restart()
+
+                    Timer {
+                        id: textgenHostDebounceTimer
+                        interval: 600
+                        repeat: false
+                        onTriggered: {
+                            Config.options.bar.aiUsage.textgenHost = textgenHostField.value.trim();
+                        }
+                    }
                 }
             }
         }

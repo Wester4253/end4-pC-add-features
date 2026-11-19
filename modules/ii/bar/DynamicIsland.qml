@@ -15,9 +15,12 @@ Item {
     id: root
     property bool mirrored: false
 
+    // === Configuration ===
     readonly property real pillHeight: 32
     readonly property real idleCollapsedWidth: 144
     readonly property real sessionWidth: 164
+    readonly property real aiChipWidth: 180
+    readonly property real recordingWidth: 180
     property real idleTextContentWidth: 0
     readonly property real idleWidth: Math.max(root.idleCollapsedWidth, root.idleTextContentWidth)
     readonly property real mediaCollapsedWidth: 140
@@ -35,9 +38,10 @@ Item {
     readonly property bool isMaterial: Config.options.bar.cornerStyle === 3 || Config.options.bar.cornerStyle === 4
     property bool vertical: Config.options.bar.vertical
 
+    // === State ===
     property string manualFocusId: ""
-
     property bool forceIdle: false
+    property bool expanded: false
 
     readonly property var displayedProvider: root.forceIdle ? null : root.activeProvider
 
@@ -47,9 +51,17 @@ Item {
         }
     }
 
+    // === Services ===
     readonly property MprisPlayer activePlayer: MprisController.activePlayer
     readonly property bool hasMedia: root.activePlayer !== null
         && ((root.activePlayer.trackTitle ?? "") !== "" || root.activePlayer.isPlaying)
+
+    // AI Usage - show when any provider has data
+    readonly property bool hasAiUsage: (Config.options.bar.aiUsage.claudeEnabled && ClaudeUsage.available)
+        || (Config.options.bar.aiUsage.codexEnabled && CodexUsage.available)
+        || (Config.options.bar.aiUsage.ompEnabled && OmpUsage.available)
+        || (Config.options.bar.aiUsage.ottoEnabled && OttoUsage.available)
+
     readonly property var latestNotification: Notifications.popupList.length > 0
         ? Notifications.popupList[Notifications.popupList.length - 1]
         : null
@@ -126,7 +138,7 @@ Item {
     }
 
     property bool batteryAlertActive: false
-    property string batteryAlertKind: "" 
+    property string batteryAlertKind: ""
     readonly property int batteryAlertDuration: 4000
 
     Timer {
@@ -191,7 +203,23 @@ Item {
         return root.batteryAlertKind === "charging" ? Appearance.m3colors.m3success : Appearance.colors.colError
     }
 
+    // === AI Usage summary text for idle state ===
+    function aiUsageSummary() {
+        const parts = [];
+        if (Config.options.bar.aiUsage.claudeEnabled && ClaudeUsage.available)
+            parts.push(`C:${Math.round(ClaudeUsage.percentage * 100)}%`);
+        if (Config.options.bar.aiUsage.codexEnabled && CodexUsage.available)
+            parts.push(`X:${Math.round(CodexUsage.percentage * 100)}%`);
+        if (Config.options.bar.aiUsage.ompEnabled && OmpUsage.available)
+            parts.push(`O:${OmpUsage.requestsLastMinute}/${OmpUsage.rpmLimit}`);
+        if (Config.options.bar.aiUsage.ottoEnabled && OttoUsage.available)
+            parts.push(`☺:${OttoUsage.activeSessions}/${OttoUsage.totalSessions}`);
+        return parts.join(" • ");
+    }
+
+    // === Content Providers ===
     readonly property var contentProviders: [
+        { id: "ai",           active: root.hasAiUsage,           component: aiComponent,           width: root.aiChipWidth },
         { id: "notification", active: root.latestNotification !== null, component: notificationComponent, width: root.notificationWidth },
         { id: "battery",      active: root.batteryAlertActive,          component: batteryComponent,      width: root.batteryWidth },
         { id: "recording",    active: root.isRecording,                 component: recordingComponent,    width: root.recordingWidth },
@@ -222,6 +250,7 @@ Item {
 
     function iconForProviderId(id) {
         switch (id) {
+            case "ai":        return "neurology"
             case "media":     return "music_note"
             case "recording": return "screen_record"
             case "timer":     return root.timerIcon()
@@ -252,6 +281,7 @@ Item {
         }
     }
 
+    // === Main Pill ===
     Rectangle {
         id: pill
         anchors.left: parent.left
@@ -296,6 +326,20 @@ Item {
             onTriggered: idleToggleWheelHandler.coolingDown = false
         }
 
+        // Tap to expand (when not showing a priority provider)
+        MouseArea {
+            id: pillTapArea
+            anchors.fill: parent
+            enabled: Config.options.bar.dynamicIsland.enableExpanded
+                && !root.alwaysWinIds.some(id => root.contentProviders.find(p => p.id === id)?.active)
+            cursorShape: Qt.PointingHandCursor
+            hoverEnabled: true
+            onClicked: {
+                root.expanded = !root.expanded
+                root.manualFocusId = ""
+            }
+        }
+
         Loader {
             id: contentLoader
             anchors.fill: parent
@@ -312,6 +356,11 @@ Item {
         Component {
             id: idleComponent
             DiIdle { di: root }
+        }
+
+        Component {
+            id: aiComponent
+            DiAiChip { di: root }
         }
 
         Component {
@@ -421,6 +470,7 @@ Item {
         }
     }
 
+    // === Badges ===
     Row {
         id: badgesRow
         visible: root.badgeProviders.length > 0 && !root.vertical
@@ -455,6 +505,33 @@ Item {
                     cursorShape: Qt.PointingHandCursor
                     onClicked: root.manualFocusId = badgeItem.modelData.id
                 }
+            }
+        }
+    }
+
+    // === Expanded Panel ===
+    Loader {
+        id: expandedLoader
+        visible: root.expanded && !root.vertical && Config.options.bar.dynamicIsland.enableExpanded
+        anchors.top: pill.bottom
+        anchors.topMargin: 8
+        anchors.horizontalCenter: pill.horizontalCenter
+        sourceComponent: expandedComponent
+        active: root.expanded && Config.options.bar.dynamicIsland.enableExpanded
+
+        Component {
+            id: expandedComponent
+            DiExpanded { di: root }
+        }
+    }
+
+    // Close expanded when clicking outside
+    Connections {
+        target: root
+        function onExpandedChanged() {
+            if (!root.expanded) {
+                root.manualFocusId = ""
+                root.forceIdle = false
             }
         }
     }
