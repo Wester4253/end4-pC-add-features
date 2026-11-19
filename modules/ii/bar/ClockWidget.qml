@@ -1,4 +1,3 @@
-
 import qs.modules.common
 import qs.modules.common.widgets
 import qs.services
@@ -200,6 +199,11 @@ BarWidgetSwitcher {
         id: mouseArea
         anchors.fill: parent
         hoverEnabled: !Config.options.bar.tooltips.clickToShow
+        onClicked: {
+            if (mouseArea.ClockWidgetPopup && mouseArea.ClockWidgetPopup.item) {
+                mouseArea.ClockWidgetPopup.item.showCalendar = !mouseArea.ClockWidgetPopup.item.showCalendar;
+            }
+        }
         ClockWidgetPopup {
             hoverTarget: mouseArea
             today: root.today
