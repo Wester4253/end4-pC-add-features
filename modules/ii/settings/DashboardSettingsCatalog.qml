@@ -152,10 +152,6 @@ QtObject {
         "bar:Show System Info": { type: "switch", get: () => Config.options.bar.dynamicIsland.showSystemInfo, set: v => { Config.options.bar.dynamicIsland.showSystemInfo = v; } },
         "bar:Show File Search": { type: "switch", get: () => Config.options.bar.dynamicIsland.showFileSearch, set: v => { Config.options.bar.dynamicIsland.showFileSearch = v; } },
         "bar:Show Calculator": { type: "switch", get: () => Config.options.bar.dynamicIsland.showCalculator, set: v => { Config.options.bar.dynamicIsland.showCalculator = v; } },
-        "bar:Show Todo": { type: "switch", get: () => Config.options.bar.dynamicIsland.showTodo, set: v => { Config.options.bar.dynamicIsland.showTodo = v; } },
-        "bar:Show Notes": { type: "switch", get: () => Config.options.bar.dynamicIsland.showNotes, set: v => { Config.options.bar.dynamicIsland.showNotes = v; } },
-        "bar:Show Translator": { type: "switch", get: () => Config.options.bar.dynamicIsland.showTranslator, set: v => { Config.options.bar.dynamicIsland.showTranslator = v; } },
-        "bar:Show SongRec": { type: "switch", get: () => Config.options.bar.dynamicIsland.showSongRec, set: v => { Config.options.bar.dynamicIsland.showSongRec = v; } },
         "projectDisplay:Enable": { type: "switch", get: () => Config.options.projectDisplay.enable, set: v => { Config.options.projectDisplay.enable = v; } },
         "projectDisplay:Show Mirror Mode": { type: "switch", get: () => Config.options.projectDisplay.showMirrorMode, set: v => { Config.options.projectDisplay.showMirrorMode = v; } },
         "projectDisplay:Show Extend Mode": { type: "switch", get: () => Config.options.projectDisplay.showExtendMode, set: v => { Config.options.projectDisplay.showExtendMode = v; } },
@@ -357,11 +353,7 @@ QtObject {
                 { type: "toggle", key: "bar:Show Focus", title: Translation.tr("Focus Mode"), icon: "center_focus_strong" },
                 { type: "toggle", key: "bar:Show System Info", title: Translation.tr("System Info"), icon: "info" },
                 { type: "toggle", key: "bar:Show File Search", title: Translation.tr("File Search"), icon: "search" },
-                { type: "toggle", key: "bar:Show Calculator", title: Translation.tr("Calculator"), icon: "calculate" },
-                { type: "toggle", key: "bar:Show Todo", title: Translation.tr("Todo / Tasks"), icon: "checklist" },
-                { type: "toggle", key: "bar:Show Notes", title: Translation.tr("Notes"), icon: "notes" },
-                { type: "toggle", key: "bar:Show Translator", title: Translation.tr("Translator"), icon: "translate" },
-                { type: "toggle", key: "bar:Show SongRec", title: Translation.tr("Music Recognition"), icon: "music_note" }
+                { type: "toggle", key: "bar:Show Calculator", title: Translation.tr("Calculator"), icon: "calculate" }
             ]
         },
         {
