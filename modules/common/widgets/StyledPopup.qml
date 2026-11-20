@@ -17,19 +17,8 @@ LazyLoader {
     readonly property bool shouldShow: root.hoverTarget && root.hoverTarget.containsMouse && Config.options.bar.tooltips.enable && !GlobalStates.barStyleEditorOpen
         && (!Config.options.bar.tooltips.clickToShow || ((root.hoverTarget.pressedButtons ?? Qt.LeftButton) & Qt.LeftButton))
     property bool closing: false
-    property bool _focusGrabAdded: false
     active: root.shouldShow || root.closing
-    onShouldShowChanged: {
-        if (root.shouldShow && root.item) {
-            // Add to GlobalFocusGrab to prevent flickering when sidebar is open
-            GlobalFocusGrab.addPersistent(root.item.QsWindow.window);
-            root._focusGrabAdded = true;
-        } else if (!root.shouldShow && root.item && root._focusGrabAdded) {
-            // Delay closing by 100ms to prevent flickering when sidebar takes focus
-            root.closing = true;
-            closeDelayTimer.restart();
-        }
-    }
+    onShouldShowChanged: if (!root.shouldShow && root.item) root.closing = true
 
     readonly property bool barVertical: Config.options.bar.vertical
     readonly property string barEdge: {
@@ -277,19 +266,6 @@ LazyLoader {
             onTriggered: popupWindow.groupSynced = true
         }
 
-        Timer {
-            id: closeDelayTimer
-            interval: 100
-            repeat: false
-            onTriggered: {
-                if (root._focusGrabAdded && root.item) {
-                    GlobalFocusGrab.removePersistent(root.item.QsWindow.window);
-                    root._focusGrabAdded = false;
-                }
-                root.closing = false;
-            }
-        }
-
         Item {
             id: inputArea
             anchors.fill: body
@@ -297,11 +273,13 @@ LazyLoader {
 
         Item {
             id: body
-            anchors.fill: parent
-            anchors.leftMargin: Appearance.sizes.elevationMargin + root.popupBackgroundMargin * (!popupWindow.anchors.left) + (root.barEdge === "right" ? root.bounceRoom : 0)
-            anchors.rightMargin: Appearance.sizes.elevationMargin + root.popupBackgroundMargin * (!popupWindow.anchors.right) + (root.barEdge === "left" ? root.bounceRoom : 0)
-            anchors.topMargin: Appearance.sizes.elevationMargin + root.popupBackgroundMargin * (!popupWindow.anchors.top) + (root.barEdge === "bottom" ? root.bounceRoom : 0)
-            anchors.bottomMargin: Appearance.sizes.elevationMargin + root.popupBackgroundMargin * (!popupWindow.anchors.bottom) + (root.barEdge === "top" ? root.bounceRoom : 0)
+            anchors {
+                fill: parent
+                leftMargin: Appearance.sizes.elevationMargin + root.popupBackgroundMargin * (!popupWindow.anchors.left) + (root.barEdge === "right" ? root.bounceRoom : 0)
+                rightMargin: Appearance.sizes.elevationMargin + root.popupBackgroundMargin * (!popupWindow.anchors.right) + (root.barEdge === "left" ? root.bounceRoom : 0)
+                topMargin: Appearance.sizes.elevationMargin + root.popupBackgroundMargin * (!popupWindow.anchors.top) + (root.barEdge === "bottom" ? root.bounceRoom : 0)
+                bottomMargin: Appearance.sizes.elevationMargin + root.popupBackgroundMargin * (!popupWindow.anchors.bottom) + (root.barEdge === "top" ? root.bounceRoom : 0)
+            }
             visible: popupWindow.geometryReady
             opacity: root.morph ? 1 : 0
             transform: Scale {

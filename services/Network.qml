@@ -10,11 +10,6 @@ import qs.services.network
 
 /**
  * Network service with nmcli.
- * Improvements from #3751:
- * - Avoid implicit wifi scans (use cached AP list with --rescan no)
- * - Coalesce nmcli monitor lines into single refresh
- * - Refresh signal strength every 10s from cache
- * - Ethernet without internet detection using NM connectivity
  */
 Singleton {
     id: root
@@ -63,10 +58,6 @@ Singleton {
                         ? "signal_wifi_off"
                         : "signal_wifi_bad"
 
-    // Internal state for coalescing monitor events
-    property bool _monitorCoalescePending: false
-    property bool _connectivityCheckPending: false
-
     // Control
     function enableWifi(enabled = true): void {
         const cmd = enabled ? "on" : "off";
@@ -95,7 +86,7 @@ Singleton {
     }
 
     function openPublicWifiPortal() {
-        Quickshell.execDetached(["xdg-open", "https://nmcheck.gnome.org/"])
+        Quickshell.execDetached(["xdg-open", "https://nmcheck.gnome.org/"]) // From some StackExchange thread, seems to work
     }
 
     function changePassword(network: WifiAccessPoint, password: string, username = ""): void {
@@ -122,11 +113,13 @@ Singleton {
         })
         stdout: SplitParser {
             onRead: line => {
+                // print(line)
                 getNetworks.running = true
             }
         }
         stderr: SplitParser {
             onRead: line => {
+                // print("err:", line)
                 if (line.includes("Secrets were required")) {
                     root.wifiConnectTarget.askingPassword = true
                 }
@@ -164,31 +157,16 @@ Singleton {
         }
     }
 
-    // Status update - coalesced
+    // Status update
     function update() {
-        if (root._monitorCoalescePending) return;
-        root._monitorCoalescePending = true;
-        coalesceTimer.restart();
+        updateConnectionType.startCheck();
+        wifiStatusProcess.running = true
+        updateNetworkName.running = true;
+        updateNetworkStrength.running = true;
+        updateNetworkDetails.running = true;
+        updatePublicIp.running = true;
     }
 
-    Timer {
-        id: coalesceTimer
-        interval: 100
-        repeat: false
-        onTriggered: {
-            root._monitorCoalescePending = false;
-            updateConnectionType.startCheck();
-            wifiStatusProcess.running = true;
-            updateNetworkName.running = true;
-            updateNetworkStrength.running = true;
-            updateNetworkDetails.running = true;
-            if (root._connectivityCheckPending) {
-                updatePublicIp.running = true;
-            }
-        }
-    }
-
-    // Coalesced nmcli monitor
     Process {
         id: subscriber
         running: true
@@ -198,7 +176,6 @@ Singleton {
         }
     }
 
-    // Connection type + connectivity check
     Process {
         id: updateConnectionType
         property string buffer
@@ -215,7 +192,7 @@ Singleton {
         }
         onExited: (exitCode, exitStatus) => {
             const lines = updateConnectionType.buffer.trim().split('\n');
-            const connectivity = lines.pop() // none, limited, full, unknown
+            const connectivity = lines.pop() // none, limited, full
             let hasEthernet = false;
             let hasWifi = false;
             let wifiStatus = "disconnected";
@@ -246,14 +223,6 @@ Singleton {
             root.wifiStatus = wifiStatus;
             root.ethernet = hasEthernet;
             root.wifi = hasWifi;
-
-            // Schedule connectivity check for public IP
-            if (connectivity === "full" || connectivity === "limited") {
-                root._connectivityCheckPending = true;
-            } else {
-                root._connectivityCheckPending = false;
-                root.publicIpAddress = "";
-            }
         }
     }
 
@@ -314,7 +283,6 @@ Singleton {
         }
     }
 
-    // Public IP - only when connectivity is full/limited
     Process {
         id: updatePublicIp
         running: true
@@ -350,6 +318,74 @@ Singleton {
         stdout: StdioCollector {
             onStreamFinished: {
                 root.wifiEnabled = text.trim() === "enabled";
+            }
+        }
+    }
+
+    Process {
+        id: getNetworks
+        running: true
+        command: ["nmcli", "-g", "ACTIVE,SIGNAL,FREQ,SSID,BSSID,SECURITY", "d", "w"]
+        environment: ({
+            LANG: "C",
+            LC_ALL: "C"
+        })
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const PLACEHOLDER = "STRINGWHICHHOPEFULLYWONTBEUSED";
+                const rep = new RegExp("\\\\:", "g");
+                const rep2 = new RegExp(PLACEHOLDER, "g");
+
+                const allNetworks = text.trim().split("\n").map(n => {
+                    const net = n.replace(rep, PLACEHOLDER).split(":");
+                    return {
+                        active: net[0] === "yes",
+                        strength: parseInt(net[1]),
+                        frequency: parseInt(net[2]),
+                        ssid: net[3],
+                        bssid: net[4]?.replace(rep2, ":") ?? "",
+                        security: net[5] || ""
+                    };
+                }).filter(n => n.ssid && n.ssid.length > 0);
+
+                // Group networks by SSID and prioritize connected ones
+                const networkMap = new Map();
+                for (const network of allNetworks) {
+                    const existing = networkMap.get(network.ssid);
+                    if (!existing) {
+                        networkMap.set(network.ssid, network);
+                    } else {
+                        // Prioritize active/connected networks
+                        if (network.active && !existing.active) {
+                            networkMap.set(network.ssid, network);
+                        } else if (!network.active && !existing.active) {
+                            // If both are inactive, keep the one with better signal
+                            if (network.strength > existing.strength) {
+                                networkMap.set(network.ssid, network);
+                            }
+                        }
+                        // If existing is active and new is not, keep existing
+                    }
+                }
+
+                const wifiNetworks = Array.from(networkMap.values());
+
+                const rNetworks = root.wifiNetworks;
+
+                const destroyed = rNetworks.filter(rn => !wifiNetworks.find(n => n.frequency === rn.frequency && n.ssid === rn.ssid && n.bssid === rn.bssid));
+                for (const network of destroyed)
+                    rNetworks.splice(rNetworks.indexOf(network), 1).forEach(n => n.destroy());
+
+                for (const network of wifiNetworks) {
+                    const match = rNetworks.find(n => n.frequency === network.frequency && n.ssid === network.ssid && n.bssid === network.bssid);
+                    if (match) {
+                        match.lastIpcObject = network;
+                    } else {
+                        rNetworks.push(apComp.createObject(root, {
+                            lastIpcObject: network
+                        }));
+                    }
+                }
             }
         }
     }
