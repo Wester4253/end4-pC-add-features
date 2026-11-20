@@ -614,8 +614,6 @@ Singleton {
                     property bool showProfiles: true
                     property bool showFocus: true
                     property bool showSystemInfo: true
-                    property bool showFileSearch: true
-                    property bool showCalculator: true
                 }
                 property JsonObject divider: JsonObject {
                     property string style: "rect" // rect - dot - space

@@ -362,20 +362,6 @@ Item {
                     DiExpandedSystemInfoSection { di: root.di }
                 }
 
-                // File Search Section
-                Revealer {
-                    reveal: Config.options.bar.dynamicIsland.showFileSearch
-                    Layout.fillWidth: true
-                    DiExpandedFileSearchSection { di: root.di }
-                }
-
-                // Calculator Section
-                Revealer {
-                    reveal: Config.options.bar.dynamicIsland.showCalculator
-                    Layout.fillWidth: true
-                    DiExpandedCalculatorSection { di: root.di }
-                }
-
                 Item { Layout.fillWidth: true; implicitHeight: 16 }
             }
         }

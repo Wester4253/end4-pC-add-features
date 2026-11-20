@@ -609,18 +609,6 @@ ContentPage {
                         checked: Config.options.bar.dynamicIsland.showSystemInfo
                         onCheckedChanged: { Config.options.bar.dynamicIsland.showSystemInfo = checked; }
                     }
-                    ConfigSwitch {
-                        buttonIcon: "search"
-                        text: Translation.tr("File Search")
-                        checked: Config.options.bar.dynamicIsland.showFileSearch
-                        onCheckedChanged: { Config.options.bar.dynamicIsland.showFileSearch = checked; }
-                    }
-                    ConfigSwitch {
-                        buttonIcon: "calculate"
-                        text: Translation.tr("Calculator")
-                        checked: Config.options.bar.dynamicIsland.showCalculator
-                        onCheckedChanged: { Config.options.bar.dynamicIsland.showCalculator = checked; }
-                    }
                 }
             }
         }
