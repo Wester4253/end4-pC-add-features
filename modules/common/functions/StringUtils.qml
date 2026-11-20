@@ -1,4 +1,4 @@
-pragma Singleton
+{{pragma Singleton
 import Quickshell
 
 Singleton {
@@ -295,4 +295,5 @@ Singleton {
             }
         );
     }
+}
 }

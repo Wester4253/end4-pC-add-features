@@ -1,4 +1,4 @@
-pragma Singleton
+{{pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
@@ -290,4 +290,5 @@ Singleton {
             property list<var> bindOverrides: []
         }
     }
+}
 }
