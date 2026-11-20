@@ -173,7 +173,9 @@ Item {
 
                                 Repeater {
                                     model: Weather.hourly.slice(0, 12)
-                                    delegate: hourlyCard
+                                    delegate: HourlyCard {
+                                        hourData: modelData
+                                    }
                                 }
                             }
                         }
@@ -209,7 +211,9 @@ Item {
 
                             Repeater {
                                 model: Weather.daily.slice(0, 7)
-                                delegate: dailyCard
+                                delegate: DailyCard {
+                                    dayData: modelData
+                                }
                             }
                         }
                     }
@@ -239,138 +243,132 @@ Item {
             }
         }
     }
+}
 
-    // Hourly forecast card
-    Component {
-        id: hourlyCard
+// Hourly forecast card
+Item {
+    id: HourlyCard
+    required property var hourData
+    implicitWidth: 56
+    Layout.preferredHeight: 72
 
-        Item {
-            required property var hourData
-            implicitWidth: 56
-            Layout.preferredHeight: 72
+    ColumnLayout {
+        anchors.centerIn: parent
+        spacing: 4
 
-            ColumnLayout {
-                anchors.centerIn: parent
-                spacing: 4
+        StyledText {
+            Layout.alignment: Qt.AlignHCenter
+            text: hourData?.time ? Qt.formatDateTime(new Date(hourData.time), "HH:mm") : ""
+            font.pixelSize: Appearance.font.pixelSize.smaller
+            color: Appearance.colors.colSubtext
+        }
+
+        MaterialSymbol {
+            Layout.alignment: Qt.AlignHCenter
+            text: hourData?.icon ?? "partly_cloudy_day"
+            iconSize: 24
+            fill: 1
+            color: Appearance.colors.colPrimary
+        }
+
+        StyledText {
+            Layout.alignment: Qt.AlignHCenter
+            text: `${Math.round(hourData?.temperature ?? 0)}°`
+            font.pixelSize: Appearance.font.pixelSize.normal
+            font.weight: Font.Medium
+            color: Appearance.colors.colOnLayer0
+        }
+
+        StyledText {
+            Layout.alignment: Qt.AlignHCenter
+            text: `${Math.round((hourData?.precipitation ?? 0) * 100)}%`
+            font.pixelSize: Appearance.font.pixelSize.smaller
+            color: Appearance.colors.colSubtext
+        }
+    }
+}
+
+// Daily forecast card
+Item {
+    id: DailyCard
+    required property var dayData
+    Layout.fillWidth: true
+    implicitHeight: 48
+
+    Rectangle {
+        anchors.fill: parent
+        radius: 10
+        color: Appearance.colors.colLayer1
+        border.width: 1
+        border.color: Appearance.colors.colOutlineVariant
+
+        RowLayout {
+            anchors.fill: parent
+            Layout.leftMargin: 12
+            Layout.rightMargin: 12
+            spacing: 12
+
+            // Day name
+            StyledText {
+                Layout.alignment: Qt.AlignVCenter
+                Layout.preferredWidth: 80
+                text: dayData?.date ? Qt.formatDateTime(new Date(dayData.date), "EEE") : ""
+                font.pixelSize: Appearance.font.pixelSize.smaller
+                font.weight: Font.Medium
+                color: Appearance.colors.colOnLayer0
+            }
+
+            // Icon
+            MaterialSymbol {
+                Layout.alignment: Qt.AlignVCenter
+                text: dayData?.icon ?? "partly_cloudy_day"
+                iconSize: 20
+                fill: 1
+                color: Appearance.colors.colPrimary
+            }
+
+            // Condition
+            StyledText {
+                Layout.fillWidth: true
+                text: dayData?.condition ?? ""
+                font.pixelSize: Appearance.font.pixelSize.smaller
+                color: Appearance.colors.colSubtext
+            }
+
+            // High/Low
+            RowLayout {
+                Layout.alignment: Qt.AlignVCenter
+                spacing: 8
 
                 StyledText {
-                    Layout.alignment: Qt.AlignHCenter
-                    text: hourData?.time ? Qt.formatDateTime(new Date(hourData.time), "HH:mm") : ""
-                    font.pixelSize: Appearance.font.pixelSize.smaller
-                    color: Appearance.colors.colSubtext
-                }
-
-                MaterialSymbol {
-                    Layout.alignment: Qt.AlignHCenter
-                    text: hourData?.icon ?? "partly_cloudy_day"
-                    iconSize: 24
-                    fill: 1
-                    color: Appearance.colors.colPrimary
-                }
-
-                StyledText {
-                    Layout.alignment: Qt.AlignHCenter
-                    text: `${Math.round(hourData?.temperature ?? 0)}°`
+                    text: `${Math.round(dayData?.high ?? 0)}°`
                     font.pixelSize: Appearance.font.pixelSize.normal
                     font.weight: Font.Medium
                     color: Appearance.colors.colOnLayer0
                 }
 
                 StyledText {
-                    Layout.alignment: Qt.AlignHCenter
-                    text: `${Math.round((hourData?.precipitation ?? 0) * 100)}%`
-                    font.pixelSize: Appearance.font.pixelSize.smaller
+                    text: `${Math.round(dayData?.low ?? 0)}°`
+                    font.pixelSize: Appearance.font.pixelSize.normal
                     color: Appearance.colors.colSubtext
                 }
             }
-        }
-    }
 
-    // Daily forecast card
-    Component {
-        id: dailyCard
+            // Precipitation
+            RowLayout {
+                Layout.alignment: Qt.AlignVCenter
+                spacing: 4
 
-        Item {
-            required property var dayData
-            Layout.fillWidth: true
-            implicitHeight: 48
-
-            Rectangle {
-                anchors.fill: parent
-                radius: 10
-                color: Appearance.colors.colLayer1
-                border.width: 1
-                border.color: Appearance.colors.colOutlineVariant
-
-                RowLayout {
-                    anchors.fill: parent
-                    Layout.leftMargin: 12
-                    Layout.rightMargin: 12
-                    spacing: 12
-
-                    // Day name
-                    StyledText {
-                        Layout.alignment: Qt.AlignVCenter
-                        Layout.preferredWidth: 80
-                        text: dayData?.date ? Qt.formatDateTime(new Date(dayData.date), "EEE") : ""
-                        font.pixelSize: Appearance.font.pixelSize.smaller
-                        font.weight: Font.Medium
-                        color: Appearance.colors.colOnLayer0
-                    }
-
-                    // Icon
-                    MaterialSymbol {
-                        Layout.alignment: Qt.AlignVCenter
-                        text: dayData?.icon ?? "partly_cloudy_day"
-                        iconSize: 20
-                        fill: 1
-                        color: Appearance.colors.colPrimary
-                    }
-
-                    // Condition
-                    StyledText {
-                        Layout.fillWidth: true
-                        text: dayData?.condition ?? ""
-                        font.pixelSize: Appearance.font.pixelSize.smaller
-                        color: Appearance.colors.colSubtext
-                    }
-
-                    // High/Low
-                    RowLayout {
-                        Layout.alignment: Qt.AlignVCenter
-                        spacing: 8
-
-                        StyledText {
-                            text: `${Math.round(dayData?.high ?? 0)}°`
-                            font.pixelSize: Appearance.font.pixelSize.normal
-                            font.weight: Font.Medium
-                            color: Appearance.colors.colOnLayer0
-                        }
-
-                        StyledText {
-                            text: `${Math.round(dayData?.low ?? 0)}°`
-                            font.pixelSize: Appearance.font.pixelSize.normal
-                            color: Appearance.colors.colSubtext
-                        }
-                    }
-
-                    // Precipitation
-                    RowLayout {
-                        Layout.alignment: Qt.AlignVCenter
-                        spacing: 4
-
-                        MaterialSymbol {
-                            text: "water_drop"
-                            iconSize: 14
-                            fill: 1
-                            color: Appearance.colors.colPrimary
-                        }
-                        StyledText {
-                            text: `${Math.round((dayData?.precipitation ?? 0) * 100)}%`
-                            font.pixelSize: Appearance.font.pixelSize.smaller
-                            color: Appearance.colors.colSubtext
-                        }
-                    }
+                MaterialSymbol {
+                    text: "water_drop"
+                    iconSize: 14
+                    fill: 1
+                    color: Appearance.colors.colPrimary
+                }
+                StyledText {
+                    text: `${Math.round((dayData?.precipitation ?? 0) * 100)}%`
+                    font.pixelSize: Appearance.font.pixelSize.smaller
+                    color: Appearance.colors.colSubtext
                 }
             }
         }

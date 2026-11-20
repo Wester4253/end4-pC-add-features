@@ -434,12 +434,14 @@ ContentPage {
                         buttonIcon: "vertical_align_bottom"
                         currentValue: Config.options.bar.dynamicIsland.expandDirection
                         onSelected: newValue => { Config.options.bar.dynamicIsland.expandDirection = newValue; }
-                        model: [
+                        options: [
                             { displayName: Translation.tr("Auto (bar position)"), icon: "auto_mode", value: "auto" },
                             { displayName: Translation.tr("Downward"), icon: "keyboard_arrow_down", value: "down" },
                             { displayName: Translation.tr("Upward"), icon: "keyboard_arrow_up", value: "up" }
                         ]
                     }
+                }
+            }
 
             ContentSubsection {
                 Layout.topMargin: 10
