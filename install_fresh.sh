@@ -61,15 +61,29 @@ if [[ -f "$HYPR_VARS" ]]; then
     # Backup original
     cp "$HYPR_VARS" "$HYPR_VARS.bak.$(date +%Y%m%d_%H%M%S)"
     
-    # Update or add qsConfig line
+    # Update or add qsConfig line properly
     if grep -q 'qsConfig' "$HYPR_VARS"; then
-        sed -i "s|qsConfig.*|qsConfig = \"end4-pC\"|" "$HYPR_VARS"
+        # Replace existing qsConfig line
+        sed -i 's|qsConfig.*|qsConfig = "end4-pC"|' "$HYPR_VARS"
     else
+        # Add qsConfig at the end of the file, ensuring proper Lua syntax
+        echo '' >> "$HYPR_VARS"
         echo 'hl.env("qsConfig", "end4-pC")' >> "$HYPR_VARS"
     fi
     echo "  Updated $HYPR_VARS"
 else
-    echo "WARNING: $HYPR_VARS not found. You may need to manually set qsConfig."
+    echo "WARNING: $HYPR_VARS not found. Creating minimal variables.lua..."
+    mkdir -p "$(dirname "$HYPR_VARS")"
+    cat > "$HYPR_VARS" << 'EOF'
+--[[
+	Variables file for end4-pC configuration
+	This file is managed by the install script - do not edit manually unless you know what you're doing
+]]
+
+-- Quickshell configuration name
+hl.env("qsConfig", "end4-pC")
+EOF
+    echo "  Created $HYPR_VARS"
 fi
 
 echo ""
