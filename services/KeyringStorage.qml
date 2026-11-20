@@ -6,8 +6,7 @@ import qs.modules.common
 import qs.modules.common.functions
 import Quickshell;
 import Quickshell.Io;
-import QtQuick
-{;
+import QtQuick;
 
 /**
  * For storing sensitive data in the keyring.
@@ -124,6 +123,4 @@ Singleton {
         }
     }
     
-}
-}
 }
