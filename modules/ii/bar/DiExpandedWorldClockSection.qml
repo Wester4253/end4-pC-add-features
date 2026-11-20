@@ -69,10 +69,7 @@ Item {
 
                 Repeater {
                     model: WorldClock.clocks
-                    delegate: WorldClockCard {
-                        Layout.fillWidth: true
-                        clockData: modelData
-                    }
+                    delegate: worldClockCard
                 }
             }
         }
@@ -120,119 +117,122 @@ Item {
             }
         }
     }
-}
 
-// World clock card
-Item {
-    id: WorldClockCard
-    required property var clockData
-    Layout.fillWidth: true
-    implicitHeight: 56
+    // World clock card
+    Component {
+        id: worldClockCard
 
-    property string timeStr: {
-        try {
-            var d = new Date();
-            var offset = clockData.utcOffset ?? 0;
-            d.setTime(d.getTime() + offset * 60 * 1000);
-            return Qt.formatDateTime(d, "HH:mm");
-        } catch (e) { return "--:--"; }
-    }
-    property string dateStr: {
-        try {
-            var d = new Date();
-            var offset = clockData.utcOffset ?? 0;
-            d.setTime(d.getTime() + offset * 60 * 1000);
-            return Qt.formatDateTime(d, "EEEE, MMMM d");
-        } catch (e) { return ""; }
-    }
-    property bool isDST: clockData.dst ?? false
+        Item {
+            required property var clockData
+            Layout.fillWidth: true
+            implicitHeight: 56
 
-    Rectangle {
-        anchors.fill: parent
-        radius: 12
-        color: Appearance.colors.colLayer1
-        border.width: 1
-        border.color: Appearance.colors.colOutlineVariant
+            property string timeStr: {
+                try {
+                    var d = new Date();
+                    var offset = clockData.utcOffset ?? 0;
+                    d.setTime(d.getTime() + offset * 60 * 1000);
+                    return Qt.formatDateTime(d, "HH:mm");
+                } catch (e) { return "--:--"; }
+            }
+            property string dateStr: {
+                try {
+                    var d = new Date();
+                    var offset = clockData.utcOffset ?? 0;
+                    d.setTime(d.getTime() + offset * 60 * 1000);
+                    return Qt.formatDateTime(d, "EEEE, MMMM d");
+                } catch (e) { return ""; }
+            }
+            property bool isDST: clockData.dst ?? false
 
-        RowLayout {
-            anchors.fill: parent
-            Layout.leftMargin: 12
-            Layout.rightMargin: 12
-            spacing: 12
-
-            // Location icon
             Rectangle {
-                Layout.alignment: Qt.AlignVCenter
-                implicitWidth: 40
-                implicitHeight: 40
-                radius: 20
-                color: Appearance.colors.colPrimary
-                opacity: 0.15
-
-                MaterialSymbol {
-                    anchors.centerIn: parent
-                    text: "location_on"
-                    iconSize: 20
-                    fill: 1
-                    color: Appearance.colors.colPrimary
-                }
-            }
-
-            // Location info
-            ColumnLayout {
-                Layout.fillWidth: true
-                spacing: -2
-
-                StyledText {
-                    Layout.fillWidth: true
-                    text: clockData.name ?? clockData.city ?? "Unknown"
-                    font.pixelSize: Appearance.font.pixelSize.normal
-                    font.weight: Font.Medium
-                    color: Appearance.colors.colOnLayer0
-                }
-
-                StyledText {
-                    Layout.fillWidth: true
-                    text: clockData.city ? `${clockData.city}  •  ${dateStr}` : dateStr
-                    font.pixelSize: Appearance.font.pixelSize.smaller
-                    color: Appearance.colors.colSubtext
-                }
-            }
-
-            // Time
-            ColumnLayout {
-                Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
-                spacing: 2
-
-                StyledText {
-                    Layout.alignment: Qt.AlignRight
-                    text: timeStr
-                    font.pixelSize: Appearance.font.pixelSize.larger
-                    font.weight: Font.Bold
-                    font.features: { "tnum": 1 }
-                    color: Appearance.colors.colOnLayer0
-                }
+                anchors.fill: parent
+                radius: 12
+                color: Appearance.colors.colLayer1
+                border.width: 1
+                border.color: Appearance.colors.colOutlineVariant
 
                 RowLayout {
-                    Layout.alignment: Qt.AlignRight
-                    spacing: 4
+                    anchors.fill: parent
+                    Layout.leftMargin: 12
+                    Layout.rightMargin: 12
+                    spacing: 12
 
-                    Revealer {
-                        reveal: clockData.utcOffset !== undefined
+                    // Location icon
+                    Rectangle {
+                        Layout.alignment: Qt.AlignVCenter
+                        implicitWidth: 40
+                        implicitHeight: 40
+                        radius: 20
+                        color: Appearance.colors.colPrimary
+                        opacity: 0.15
+
+                        MaterialSymbol {
+                            anchors.centerIn: parent
+                            text: "location_on"
+                            iconSize: 20
+                            fill: 1
+                            color: Appearance.colors.colPrimary
+                        }
+                    }
+
+                    // Location info
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        spacing: -2
+
                         StyledText {
-                            text: `UTC${clockData.utcOffset >= 0 ? "+" : ""}${clockData.utcOffset / 60}`
+                            Layout.fillWidth: true
+                            text: clockData.name ?? clockData.city ?? "Unknown"
+                            font.pixelSize: Appearance.font.pixelSize.normal
+                            font.weight: Font.Medium
+                            color: Appearance.colors.colOnLayer0
+                        }
+
+                        StyledText {
+                            Layout.fillWidth: true
+                            text: clockData.city ? `${clockData.city}  •  ${dateStr}` : dateStr
                             font.pixelSize: Appearance.font.pixelSize.smaller
                             color: Appearance.colors.colSubtext
                         }
                     }
 
-                    Revealer {
-                        reveal: isDST
-                        MaterialSymbol {
-                            text: "wb_sunny"
-                            iconSize: 12
-                            fill: 1
-                            color: Appearance.m3colors.m3warning
+                    // Time
+                    ColumnLayout {
+                        Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
+                        spacing: 2
+
+                        StyledText {
+                            Layout.alignment: Qt.AlignRight
+                            text: timeStr
+                            font.pixelSize: Appearance.font.pixelSize.larger
+                            font.weight: Font.Bold
+                            font.features: { "tnum": 1 }
+                            color: Appearance.colors.colOnLayer0
+                        }
+
+                        RowLayout {
+                            Layout.alignment: Qt.AlignRight
+                            spacing: 4
+
+                            Revealer {
+                                reveal: clockData.utcOffset !== undefined
+                                StyledText {
+                                    text: `UTC${clockData.utcOffset >= 0 ? "+" : ""}${clockData.utcOffset / 60}`
+                                    font.pixelSize: Appearance.font.pixelSize.smaller
+                                    color: Appearance.colors.colSubtext
+                                }
+                            }
+
+                            Revealer {
+                                reveal: isDST
+                                MaterialSymbol {
+                                    text: "wb_sunny"
+                                    iconSize: 12
+                                    fill: 1
+                                    color: Appearance.m3colors.m3warning
+                                }
+                            }
                         }
                     }
                 }

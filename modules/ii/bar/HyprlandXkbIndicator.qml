@@ -42,16 +42,25 @@ Loader {
     // Read initial layout on startup if not already set
     Component.onCompleted: {
         if (!HyprlandXkb.currentLayoutCode && WM.compositor === "hyprland") {
-            Hyprland.sendMessage("j/devices")
-                .then(result => {
+            initialLayoutProc.running = true;
+        }
+    }
+
+    Process {
+        id: initialLayoutProc
+        command: ["hyprctl", "devices", "-j"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                try {
+                    const result = JSON.parse(text);
                     if (result && result.keyboards) {
                         const kb = result.keyboards.find(k => k.main);
                         if (kb && kb.active_keymap) {
                             currentLayoutCode = kb.active_keymap.split(":")[0] || kb.active_keymap;
                         }
                     }
-                })
-                .catch(() => {});
+                } catch (e) {}
+            }
         }
     }
 

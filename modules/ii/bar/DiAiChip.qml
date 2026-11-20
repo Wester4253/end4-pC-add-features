@@ -56,8 +56,8 @@ Item {
                     StyledProgressBar {
                         anchors.fill: parent
                         value: ClaudeUsage.percentage
-                        color: Appearance.colors.colPrimary
-                        background: Appearance.colors.colLayer0
+                        highlightColor: Appearance.colors.colPrimary
+                        trackColor: Appearance.colors.colLayer0
                     }
                 }
             }
@@ -73,8 +73,8 @@ Item {
                     StyledProgressBar {
                         anchors.fill: parent
                         value: CodexUsage.percentage
-                        color: Appearance.colors.colSecondary
-                        background: Appearance.colors.colLayer0
+                        highlightColor: Appearance.colors.colSecondary
+                        trackColor: Appearance.colors.colLayer0
                     }
                 }
             }
@@ -90,8 +90,8 @@ Item {
                     StyledProgressBar {
                         anchors.fill: parent
                         value: OmpUsage.requestsLastMinute / OmpUsage.rpmLimit
-                        color: Appearance.colors.colTertiary
-                        background: Appearance.colors.colLayer0
+                        highlightColor: Appearance.colors.colTertiary
+                        trackColor: Appearance.colors.colLayer0
                     }
                 }
             }
@@ -107,8 +107,8 @@ Item {
                     StyledProgressBar {
                         anchors.fill: parent
                         value: OttoUsage.totalSessions > 0 ? OttoUsage.activeSessions / OttoUsage.totalSessions : 0
-                        color: Appearance.colors.colError
-                        background: Appearance.colors.colLayer0
+                        highlightColor: Appearance.colors.colError
+                        trackColor: Appearance.colors.colLayer0
                     }
                 }
             }
@@ -122,7 +122,6 @@ Item {
             font.features: { "tnum": 1 }
             color: Appearance.colors.colOnLayer0
             elide: Text.ElideRight
-            maximumHorizontalAdvance: 120
         }
     }
 }

@@ -1,14 +1,11 @@
 import QtQuick
 import QtQuick.Layouts
-import Quickshell
 import qs
 import qs.services
-import qs.modules.common
-import qs.modules.common.widgets
 
 Item {
     id: root
-    property VisualizerEngine engine: VisualizerEngine
+    property VisualizerEngine engine
     property string style: "bars" // "bars", "dots", "wave", "mirror"
     property int barCount: 32
     property color color: Appearance.colors.colPrimary
