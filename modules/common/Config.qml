@@ -578,7 +578,6 @@ Singleton {
                     property int tokenLimit: 1000000
                     property int updateInterval: 60
                 }
-
                 property JsonObject dynamicIsland: JsonObject {
                     property string visualizerStyle: "dots" // "dots", "wave", "none", "bars", "mirror"
                     property bool showMediaControls: false
@@ -650,7 +649,6 @@ Singleton {
                     property string style: "rect" // rect - dot - space
                     property int spacing: 20
                 }
-
                 property JsonObject layouts: JsonObject {
                     property list<string> leftLayout: ["launcherButton", "workspaces", "activeWindow"]
                     property list<string> middleLayout: ["clockWidget"]

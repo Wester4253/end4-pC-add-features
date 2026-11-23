@@ -12,6 +12,7 @@ Singleton {
     property var servers: {}
     property int totalRunning: 0
     property int totalModels: 0
+    readonly property real percentage: totalModels > 0 ? totalRunning / totalModels : 0
 
     function refresh() {
         if (Config.options.bar.aiUsage.localLLMEnabled && !usageProc.running) usageProc.running = true;

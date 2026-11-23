@@ -11,17 +11,6 @@ Item {
     required property Item di
     Layout.fillWidth: true
 
-    // Local property to avoid triggering adapter power on during init
-    property bool _adapterEnabled: BluetoothStatus.enabled
-
-    // Sync adapter state only on user interaction
-    Connections {
-        target: BluetoothStatus
-        function onEnabledChanged() {
-            root._adapterEnabled = BluetoothStatus.enabled;
-        }
-    }
-
     ColumnLayout {
         Layout.fillWidth: true
         spacing: 8
@@ -51,16 +40,16 @@ Item {
 
             Item { Layout.fillWidth: true }
 
-            // Toggle - use local property to avoid triggering adapter on init
+            // Toggle
             Switch {
                 id: btToggle
-                checked: root._adapterEnabled
+                checked: BluetoothStatus.enabled
                 onCheckedChanged: BluetoothStatus.enabled = checked
             }
         }
 
         Revealer {
-            reveal: root._adapterEnabled
+            reveal: BluetoothStatus.enabled
             Layout.fillWidth: true
 
             ColumnLayout {
@@ -170,7 +159,7 @@ Item {
         }
 
         Revealer {
-            reveal: !root._adapterEnabled
+            reveal: !BluetoothStatus.enabled
             Layout.fillWidth: true
 
             Rectangle {
