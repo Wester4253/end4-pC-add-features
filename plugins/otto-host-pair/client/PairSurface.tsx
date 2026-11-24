@@ -1,7 +1,7 @@
 import type { PluginSurfaceProps } from "@otto-code/plugin/client";
 import { useRpc } from "@otto-code/plugin/client";
-import { useMutation, useQuery, useState } from "@tanstack/react-query";
-import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useMemo, useState } from "react";
 import { Pressable, Text, TextInput, View, ScrollView, ActivityIndicator } from "react-native";
 import {
   tailscaleStatusRpc,
@@ -21,71 +21,63 @@ import {
 import { openExternal } from "./web";
 
 export function PairSurface({ theme, layout }: PluginSurfaceProps) {
+  const c = theme.colors;
+
+  // --- RPCs ---
+  const rpcTailscaleStatus = useRpc(tailscaleStatusRpc);
+  const rpcTailscaleFull = useRpc(tailscaleFullStatusRpc);
+  const rpcTailscalePeers = useRpc(tailscalePeersRpc);
+  const rpcOttoStatus = useRpc(ottoDaemonStatusRpc);
+  const rpcOttoFull = useRpc(ottoDaemonFullStatusRpc);
+  const rpcOttoFeatures = useRpc(ottoFeaturesRpc);
+  const rpcSystemUsage = useRpc(ottoSystemUsageRpc);
+  const rpcAgentStatus = useRpc(ottoAgentStatusRpc);
+  const rpcSessionStatus = useRpc(ottoSessionStatusRpc);
+  const rpcSummary = useRpc(ottoSummaryRpc);
+  const rpcOpenDesktop = useRpc(ottoDesktopLinkRpc);
+
   // --- Queries ---
   const tailscaleStatus = useQuery({
     queryKey: ["tailscale-status"],
-    queryFn: useRpc(tailscaleStatusRpc),
+    queryFn: async () => rpcTailscaleStatus({}),
   });
-
   const tailscaleFull = useQuery({
     queryKey: ["tailscale-full"],
-    queryFn: useRpc(tailscaleFullStatusRpc),
+    queryFn: async () => rpcTailscaleFull({}),
   });
-
   const tailscalePeers = useQuery({
     queryKey: ["tailscale-peers"],
-    queryFn: useRpc(tailscalePeersRpc),
+    queryFn: async () => rpcTailscalePeers({}),
   });
-
   const ottoStatus = useQuery({
     queryKey: ["otto-status"],
-    queryFn: useRpc(ottoDaemonStatusRpc),
+    queryFn: async () => rpcOttoStatus({}),
   });
-
   const ottoFull = useQuery({
     queryKey: ["otto-full"],
-    queryFn: useRpc(ottoDaemonFullStatusRpc),
+    queryFn: async () => rpcOttoFull({}),
   });
-
   const ottoFeatures = useQuery({
     queryKey: ["otto-features"],
-    queryFn: useRpc(ottoFeaturesRpc),
+    queryFn: async () => rpcOttoFeatures({}),
   });
-
   const systemUsage = useQuery({
     queryKey: ["system-usage"],
-    queryFn: useRpc(ottoSystemUsageRpc),
+    queryFn: async () => rpcSystemUsage({}),
   });
-
   const agentStatus = useQuery({
     queryKey: ["agent-status"],
-    queryFn: useRpc(ottoAgentStatusRpc),
+    queryFn: async () => rpcAgentStatus({}),
   });
-
   const sessionStatus = useQuery({
     queryKey: ["session-status"],
-    queryFn: useRpc(ottoSessionStatusRpc),
+    queryFn: async () => rpcSessionStatus({}),
   });
-
   const summary = useQuery({
     queryKey: ["otto-summary"],
-    queryFn: useRpc(ottoSummaryRpc),
+    queryFn: async () => rpcSummary({}),
   });
 
-  // --- Mutations ---
-  const pairTailscale = useMutation({
-    mutationFn: useRpc(tailscalePairRpc),
-  });
-
-  const pairOtto = useMutation({
-    mutationFn: useRpc(ottoPairRpc),
-  });
-
-  const openDesktop = useMutation({
-    mutationFn: useRpc(ottoDesktopLinkRpc),
-  });
-
-  // --- Local state ---
   const [hostIp, setHostIp] = useState("");
   const [showDetails, setShowDetails] = useState(false);
   const [desktopUrl, setDesktopUrl] = useState<string | null>(null);
@@ -95,10 +87,10 @@ export function PairSurface({ theme, layout }: PluginSurfaceProps) {
       screen: {
         flex: 1,
         padding: layout.compact ? 12 : 20,
-        backgroundColor: theme.colors.surface0,
+        backgroundColor: c.surface0,
       },
       card: {
-        backgroundColor: theme.colors.surface1,
+        backgroundColor: c.surface1,
         borderRadius: 12,
         padding: layout.compact ? 16 : 20,
         marginBottom: 16,
@@ -106,69 +98,69 @@ export function PairSurface({ theme, layout }: PluginSurfaceProps) {
       title: {
         fontSize: layout.compact ? 18 : 20,
         fontWeight: "600" as const,
-        color: theme.colors.foreground,
+        color: c.foreground,
         marginBottom: 8,
       },
       subtitle: {
         fontSize: 14,
-        color: theme.colors.subtext,
+        color: c.foregroundMuted,
         marginBottom: 16,
       },
       statusRow: {
         flexDirection: "row",
-        alignItems: "center",
+        alignItems: "center" as const,
         gap: 8,
         marginBottom: 8,
       },
       statusRowCompact: {
         flexDirection: "row",
-        alignItems: "center",
+        alignItems: "center" as const,
         gap: 6,
         marginBottom: 6,
       },
       statusLabel: {
         fontSize: 13,
-        color: theme.colors.subtext,
+        color: c.foregroundMuted,
         flex: 1,
       },
       statusValue: {
         fontSize: 13,
         fontWeight: "500" as const,
-        color: theme.colors.foreground,
+        color: c.foreground,
       },
       statusValueOk: {
         fontSize: 13,
         fontWeight: "500" as const,
-        color: theme.colors.success,
+        color: c.statusSuccess,
       },
       statusValueWarn: {
         fontSize: 13,
         fontWeight: "500" as const,
-        color: theme.colors.warning,
+        color: c.statusWarning,
       },
       statusValueError: {
         fontSize: 13,
         fontWeight: "500" as const,
-        color: theme.colors.error,
+        color: c.statusDanger,
       },
       divider: {
         height: 1,
-        backgroundColor: theme.colors.outlineVariant,
+        backgroundColor: c.border,
         marginVertical: 10,
       },
       input: {
-        backgroundColor: theme.colors.surface2,
-        borderColor: theme.colors.outline,
+        backgroundColor: c.surface2,
+        borderColor: c.border,
         borderWidth: 1,
         borderRadius: 8,
         paddingHorizontal: 12,
         paddingVertical: 10,
-        color: theme.colors.foreground,
+        color: c.foreground,
         fontSize: 14,
         marginBottom: 12,
       },
       button: {
-        backgroundColor: theme.colors.primary,
+        backgroundColor: c.accent,
         borderRadius: 8,
         paddingVertical: 12,
         paddingHorizontal: 16,
@@ -176,79 +168,77 @@ export function PairSurface({ theme, layout }: PluginSurfaceProps) {
         marginBottom: 8,
       },
       buttonText: {
-        color: theme.colors.onPrimary,
+        color: c.accentForeground,
         fontWeight: "600" as const,
         fontSize: 14,
       },
       buttonDisabled: {
-        backgroundColor: theme.colors.surface2,
+        backgroundColor: c.surface2,
       },
       link: {
-        color: theme.colors.primary,
+        color: c.accent,
         fontSize: 14,
         textDecorationLine: "underline" as const,
       },
       error: {
-        color: theme.colors.error,
+        color: c.statusDanger,
         fontSize: 12,
         marginTop: 8,
       },
       success: {
-        color: theme.colors.success,
+        color: c.statusSuccess,
         fontSize: 12,
         marginTop: 8,
       },
       peerItem: {
         flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-between",
+        alignItems: "center" as const,
+        justifyContent: "space-between" as const,
         paddingVertical: 6,
         paddingHorizontal: 4,
         borderBottomWidth: 1,
-        borderBottomColor: theme.colors.outlineVariant,
+        borderBottomColor: c.border,
       },
       peerName: {
         fontSize: 13,
-        color: theme.colors.foreground,
+        color: c.foreground,
         fontWeight: "500" as const,
       },
       peerIp: {
         fontSize: 12,
-        color: theme.colors.colSubtext,
+        color: c.foregroundMuted,
       },
       toggleButton: {
-        backgroundColor: theme.colors.surface2,
+        backgroundColor: c.surface2,
         borderRadius: 8,
         paddingVertical: 10,
         paddingHorizontal: 16,
         marginBottom: 8,
-        flexDirection: "row" as const,
+        flexDirection: "row",
         justifyContent: "space-between" as const,
         alignItems: "center" as const,
       },
       agentItem: {
         flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-between",
+        alignItems: "center" as const,
+        justifyContent: "space-between" as const,
         paddingVertical: 6,
         paddingHorizontal: 4,
         borderBottomWidth: 1,
-        borderBottomColor: theme.colors.outlineVariant,
+        borderBottomColor: c.border,
       },
       agentName: {
         fontSize: 13,
-        color: theme.colors.foreground,
+        color: c.foreground,
         fontWeight: "500" as const,
       },
       agentMeta: {
         fontSize: 11,
-        color: theme.colors.colSubtext,
+        color: c.foregroundMuted,
       },
-    }),
+    }) as any,
     [theme, layout.compact],
-  );
 
-  // --- Derived data ---
   const ts = tailscaleFull.data;
   const tsPeers = tailscalePeers.data ?? [];
   const ot = ottoFull.data;
@@ -257,9 +247,6 @@ export function PairSurface({ theme, layout }: PluginSurfaceProps) {
   const se = sessionStatus.data;
   const summ = summary.data;
   const tsBasic = tailscaleStatus.data;
-  const otBasic = ottoStatus.data;
-
-  const tsRunning = tsBasic?.running ?? false;
   const tsIp = tsBasic?.ip ?? "";
   const tsDns = tsBasic?.dns ?? "";
   const ottoRunning = otBasic?.running ?? false;
@@ -270,13 +257,12 @@ export function PairSurface({ theme, layout }: PluginSurfaceProps) {
     ok ? styles.statusValueOk : styles.statusValueError;
 
   const handleOpenDesktop = async () => {
-    const result = await openDesktop.mutateAsync({ path: undefined });
+    const result = await rpcOpenDesktop({});
     setDesktopUrl(result.url);
   };
 
   return (
     <ScrollView style={styles.screen}>
-      {/* --- SUMMARY CARD --- */}
       <View style={styles.card}>
         <Text style={styles.title}>Otto Host Pair</Text>
         <Text style={styles.subtitle}>
@@ -285,7 +271,9 @@ export function PairSurface({ theme, layout }: PluginSurfaceProps) {
 
         <View style={styles.statusRow}>
           <Text style={styles.statusLabel}>Tailscale</Text>
-          <Text style={statusColor(tsRunning)}>{tsRunning ? "Online" : "Offline"}</Text>
+          <Text style={statusColor(tsRunning)}>
+            {tsRunning ? "Online" : "Offline"}
+          </Text>
         </View>
         {tsIp && (
           <View style={styles.statusRowCompact}>
@@ -367,7 +355,9 @@ export function PairSurface({ theme, layout }: PluginSurfaceProps) {
             {ag.failedAgents > 0 && (
               <View style={styles.statusRowCompact}>
                 <Text style={styles.statusLabel}>Failed</Text>
-                <Text style={styles.statusValueError}>{ag.failedAgents}</Text>
+                <Text style={styles.statusValueError}>
+                  {ag.failedAgents}
+                </Text>
               </View>
             )}
           </>
@@ -384,14 +374,15 @@ export function PairSurface({ theme, layout }: PluginSurfaceProps) {
             {se.failedSessions > 0 && (
               <View style={styles.statusRowCompact}>
                 <Text style={styles.statusLabel}>Failed</Text>
-                <Text style={styles.statusValueError}>{se.failedSessions}</Text>
+                <Text style={styles.statusValueError}>
+                  {se.failedSessions}
+                </Text>
               </View>
             )}
           </>
         )}
       </View>
 
-      {/* --- DESKTOP APP LINK --- */}
       <View style={styles.card}>
         <Text style={styles.title}>Open in Otto Desktop</Text>
         <Text style={styles.subtitle}>
@@ -408,19 +399,13 @@ export function PairSurface({ theme, layout }: PluginSurfaceProps) {
             <Text style={styles.statusValue}>{desktopUrl}</Text>
           </View>
         )}
-        {openDesktop.isError && (
-          <Text style={styles.error}>
-            {String(openDesktop.error?.message ?? openDesktop.error)}
-          </Text>
-        )}
       </View>
 
-      {/* --- TAILSCALE DETAILS --- */}
       <Pressable
         style={styles.toggleButton}
         onPressed={() => setShowDetails(!showDetails)}
       >
-        <Text style={{ ...styles.buttonText, color: theme.colors.primary }}>
+        <Text style={{ ...styles.buttonText, color: c.accent }}>
           {showDetails ? "Hide" : "Show"} Tailscale Details
         </Text>
       </Pressable>
@@ -452,7 +437,10 @@ export function PairSurface({ theme, layout }: PluginSurfaceProps) {
                 Peers
               </Text>
               {tsPeers.map((peer) => (
-                <View key={peer.ip ?? peer.name} style={styles.peerItem}>
+                <View
+                  key={peer.ip ?? peer.name}
+                  style={styles.peerItem}
+                >
                   <View>
                     <Text style={styles.peerName}>{peer.name}</Text>
                     <Text style={styles.peerIp}>
@@ -462,7 +450,7 @@ export function PairSurface({ theme, layout }: PluginSurfaceProps) {
                   <Text
                     style={{
                       fontSize: 11,
-                      color: peer.online ? theme.colors.success : theme.colors.error,
+                      color: peer.online ? c.statusSuccess : c.statusDanger,
                     }}
                   >
                     {peer.exitNode ? "EXIT" : ""}
@@ -474,12 +462,11 @@ export function PairSurface({ theme, layout }: PluginSurfaceProps) {
         </View>
       )}
 
-      {/* --- OTTO DAEMON DETAILS --- */}
       <Pressable
         style={styles.toggleButton}
         onPressed={() => setShowDetails(!showDetails)}
       >
-        <Text style={{ ...styles.buttonText, color: theme.colors.primary }}>
+        <Text style={{ ...styles.buttonText, color: c.accent }}>
           {showDetails ? "Hide" : "Show"} Otto Daemon Details
         </Text>
       </Pressable>
@@ -519,12 +506,11 @@ export function PairSurface({ theme, layout }: PluginSurfaceProps) {
         </View>
       )}
 
-      {/* --- AGENT STATUS --- */}
       <Pressable
         style={styles.toggleButton}
         onPressed={() => setShowDetails(!showDetails)}
       >
-        <Text style={{ ...styles.buttonText, color: theme.colors.primary }}>
+        <Text style={{ ...styles.buttonText, color: c.accent }}>
           {showDetails ? "Hide" : "Show"} Agent Status
         </Text>
       </Pressable>
@@ -535,7 +521,9 @@ export function PairSurface({ theme, layout }: PluginSurfaceProps) {
           {ag.agents.map((agent: any) => (
             <View key={agent.id} style={styles.agentItem}>
               <View>
-                <Text style={styles.agentName}>{agent.title ?? "Untitled"}</Text>
+                <Text style={styles.agentName}>
+                  {agent.title ?? "Untitled"}
+                </Text>
                 <Text style={styles.agentMeta}>
                   {agent.provider} • {agent.status}
                 </Text>
@@ -545,10 +533,11 @@ export function PairSurface({ theme, layout }: PluginSurfaceProps) {
                   fontSize: 11,
                   color:
                     agent.lastTurnOutcome === "failed"
-                      ? theme.colors.error
-                    : agent.status === "active" || agent.status === "running"
-                      ? theme.colors.success
-                      : theme.colors.colSubtext,
+                      ? c.statusDanger
+                    : agent.status === "active" ||
+                      agent.status === "running"
+                      ? c.statusSuccess
+                      : c.foregroundMuted,
                 }}
               >
                 {agent.lastTurnOutcome ?? "—"}
@@ -558,7 +547,6 @@ export function PairSurface({ theme, layout }: PluginSurfaceProps) {
         </View>
       )}
 
-      {/* --- PAIRING SECTION --- */}
       <View style={styles.card}>
         <Text style={styles.title}>Pair New Host</Text>
         <Text style={styles.subtitle}>
@@ -576,51 +564,40 @@ export function PairSurface({ theme, layout }: PluginSurfaceProps) {
         <Pressable
           style={[styles.button, !tsRunning || !hostIp ? styles.buttonDisabled : {}]}
           disabled={!tsRunning || !hostIp}
-          onPress={() => {
-            pairTailscale.mutate({ hostIp });
+          onPress={async () => {
+            try {
+              await rpcTailscalePairRpc({ hostIp });
+              setHostIp("");
+            } catch (e) {
+              console.error("Pair failed:", e);
+            }
           }}
         >
           <Text style={styles.buttonText}>
-            {pairTailscale.isPending ? "Pairing…" : "Pair Tailscale Host"}
+            {tsRunning ? "Pair Tailscale Host" : "Tailscale Offline"}
           </Text>
         </Pressable>
-
-        {pairTailscale.isError && (
-          <Text style={styles.error}>
-            {String(pairTailscale.error?.message ?? pairTailscale.error)}
-          </Text>
-        )}
-
-        {pairTailscale.isSuccess && (
-          <Text style={styles.success}>Paired with {hostIp}</Text>
-        )}
 
         <View style={styles.divider} />
 
         <Pressable
           style={[styles.button, !tsRunning || !hostIp ? styles.buttonDisabled : {}]}
           disabled={!tsRunning || !hostIp}
-          onPress={() => {
-            pairOtto.mutate({ tailscaleIp: hostIp });
+          onPress={async () => {
+            try {
+              await rpcOttoPairRpc({ tailscaleIp: hostIp });
+              setHostIp("");
+            } catch (e) {
+              console.error("Link failed:", e);
+            }
           }}
         >
           <Text style={styles.buttonText}>
-            {pairOtto.isPending ? "Linking daemon…" : "Link Otto Daemon"}
+            {tsRunning ? "Link Otto Daemon" : "Tailscale Offline"}
           </Text>
         </Pressable>
-
-        {pairOtto.isError && (
-          <Text style={styles.error}>
-            {String(pairOtto.error?.message ?? pairOtto.error)}
-          </Text>
-        )}
-
-        {pairOtto.isSuccess && (
-          <Text style={styles.success}>Otto daemon linked at {hostIp}</Text>
-        )}
       </View>
 
-      {/* --- DAEMON FEATURES --- */}
       <View style={styles.card}>
         <Text style={styles.title}>Daemon Features</Text>
         {ottoFeatures.isPending ? (
@@ -655,7 +632,6 @@ export function PairSurface({ theme, layout }: PluginSurfaceProps) {
         )}
       </View>
 
-      {/* --- DESKTOP APP INSTRUCTIONS --- */}
       <View style={styles.card}>
         <Text style={styles.title}>Otto Desktop App</Text>
         <Text style={styles.subtitle}>
