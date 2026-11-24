@@ -419,6 +419,58 @@ ContentPage {
         }
 
         ContentSection {
+            icon: "monitor"
+            shape: MaterialShape.Shape.Gem
+            title: Translation.tr("Project Display")
+            visible: Config.options.projectDisplay.enable
+
+            GroupedList {
+                ConfigSwitch {
+                    buttonIcon: "monitor"
+                    text: Translation.tr("Enable Project Display")
+                    checked: Config.options.projectDisplay.enable
+                    onCheckedChanged: { Config.options.projectDisplay.enable = checked; }
+                }
+                ConfigSwitch {
+                    buttonIcon: "input"
+                    text: Translation.tr("Show Mirror Mode")
+                    checked: Config.options.projectDisplay.showMirrorMode
+                    onCheckedChanged: { Config.options.projectDisplay.showMirrorMode = checked; }
+                }
+                ConfigSwitch {
+                    buttonIcon: "screen_share"
+                    text: Translation.tr("Show Extend Mode")
+                    checked: Config.options.projectDisplay.showExtendMode
+                    onCheckedChanged: { Config.options.projectDisplay.showExtendMode = checked; }
+                }
+                ConfigSwitch {
+                    buttonIcon: "fullscreen"
+                    text: Translation.tr("Show Resolution Selector")
+                    checked: Config.options.projectDisplay.showResolutionSelector
+                    onCheckedChanged: { Config.options.projectDisplay.showResolutionSelector = checked; }
+                }
+                ConfigSwitch {
+                    buttonIcon: "aspect_ratio"
+                    text: Translation.tr("Show Scale Selector")
+                    checked: Config.options.projectDisplay.showScaleSelector
+                    onCheckedChanged: { Config.options.projectDisplay.showScaleSelector = checked; }
+                }
+                ConfigSwitch {
+                    buttonIcon: "brightness_6"
+                    text: Translation.tr("Show Brightness Slider")
+                    checked: Config.options.projectDisplay.showBrightnessSlider
+                    onCheckedChanged: { Config.options.projectDisplay.showBrightnessSlider = checked; }
+                }
+                ConfigSwitch {
+                    buttonIcon: "nightlight"
+                    text: Translation.tr("Show Night Light")
+                    checked: Config.options.projectDisplay.showNightLight
+                    onCheckedChanged: { Config.options.projectDisplay.showNightLight = checked; }
+                }
+            }
+        }
+
+        ContentSection {
             icon: "notifications"
             shape: MaterialShape.Shape.Bun
             title: Translation.tr("Notifications")
@@ -958,6 +1010,37 @@ ContentPage {
                         { displayName: Translation.tr("Default"), icon: "tooltip", value: "default" },
                         { displayName: Translation.tr("Morph"), icon: "join_inner", value: "morph" }
                     ]
+                }
+            }
+        }
+
+        ContentSection {
+            icon: "device_hub"
+            shape: MaterialShape.Shape.Gem
+            title: Translation.tr("Otto Host Pair")
+
+            GroupedList {
+                ConfigSwitch {
+                    buttonIcon: "tailscale"
+                    text: Translation.tr("Enable Otto Host Pairing")
+                    checked: Config.options.ottoHostPair.enable ?? true
+                    onCheckedChanged: { Config.options.ottoHostPair.enable = checked; }
+                }
+                ConfigRow {
+                    Layout.fillWidth: true
+                    Layout.leftMargin: 8
+                    Layout.rightMargin: 8
+                    spacing: 10
+
+                    StyledText {
+                        Layout.fillWidth: true
+                        text: Translation.tr("Pair with Otto daemon over Tailscale")
+                        color: Appearance.colors.colOnSecondaryContainer
+                    }
+                    StyledText {
+                        text: Translation.tr("Connect to remote Otto daemon features")
+                        color: Appearance.colors.colSubtext
+                    }
                 }
             }
         }

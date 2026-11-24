@@ -11,6 +11,100 @@ Item {
     required property Item di
     Layout.fillWidth: true
 
+    // Week row component
+    Component {
+        id: weekRow
+        Item {
+            property var weekIndex: modelData
+            required property var currentMonth
+            required property var today
+            required property var selectedDate
+            required property var onDateClicked
+
+            Layout.fillWidth: true
+            implicitHeight: 36
+
+            property var firstDay: firstDayOfMonth(currentMonth)
+            property var daysInMonth: daysInMonth(currentMonth)
+            property var startDate: weekIndex * 7 - firstDay + 1
+
+            function firstDayOfMonth(date) { return new Date(date.getFullYear(), date.getMonth(), 1).getDay() }
+            function daysInMonth(date) { return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate() }
+            function isToday(date) { return date.getDate() === today.getDate() && date.getMonth() === today.getMonth() && date.getFullYear() === today.getFullYear() }
+            function isSelected(date) { return date.getDate() === selectedDate.getDate() && date.getMonth() === selectedDate.getMonth() && date.getFullYear() === selectedDate.getFullYear() }
+            function isCurrentMonth(date) { return date.getMonth() === currentMonth.getMonth() }
+
+            RowLayout {
+                anchors.fill: parent
+                spacing: 0
+
+                Repeater {
+                    model: 7
+                    delegate: dayCell
+                    Layout.fillWidth: true
+                    Layout.alignment: Qt.AlignVCenter
+                    dayIndex: index
+                    weekIndex: root.weekIndex
+                    startDate: root.startDate
+                    daysInMonth: root.daysInMonth
+                    currentMonth: root.currentMonth
+                    today: root.today
+                    selectedDate: root.selectedDate
+                    onClicked: root.onDateClicked
+                }
+            }
+        }
+    }
+
+    // Day cell component
+    Component {
+        id: dayCell
+        Item {
+            property int dayIndex: modelData
+            required property int weekIndex
+            required property int startDate
+            required property int daysInMonth
+            required property var currentMonth
+            required property var today
+            required property var selectedDate
+            required property var onClicked
+
+            implicitHeight: 36
+
+            property int dayNumber: startDate + dayIndex
+            property bool validDay: dayNumber >= 1 && dayNumber <= daysInMonth
+            property var dateObj: validDay ? new Date(currentMonth.getFullYear(), currentMonth.getMonth(), dayNumber) : null
+            property bool isToday: validDay ? (dateObj.getDate() === today.getDate() && dateObj.getMonth() === today.getMonth() && dateObj.getFullYear() === today.getFullYear()) : false
+            property bool isSelected: validDay ? (dateObj.getDate() === selectedDate.getDate() && dateObj.getMonth() === selectedDate.getMonth() && dateObj.getFullYear() === selectedDate.getFullYear()) : false
+
+            Rectangle {
+                anchors.fill: parent
+                radius: 6
+                color: isSelected ? Appearance.colors.colPrimary : (isToday ? Appearance.colors.colLayer1 : "transparent")
+                border.width: isToday ? 1 : 0
+                border.color: Appearance.colors.colPrimary
+
+                ColumnLayout {
+                    anchors.centerIn: parent
+                    spacing: 2
+
+                    StyledText {
+                        Layout.alignment: Qt.AlignHCenter
+                        text: validDay ? dayNumber : ""
+                        font.pixelSize: Appearance.font.pixelSize.normal
+                        color: isSelected ? Appearance.colors.colOnPrimary : Appearance.colors.colOnLayer0
+                    }
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+                    enabled: validDay
+                    onClicked: onClicked(dateObj)
+                }
+            }
+        }
+    }
+
     property var today: new Date()
     property var selectedDate: new Date()
     property var currentMonth: new Date(today.getFullYear(), today.getMonth(), 1)
@@ -33,8 +127,6 @@ Item {
         return date.getDate() === selectedDate.getDate() && date.getMonth() === selectedDate.getMonth() && date.getFullYear() === selectedDate.getFullYear()
     }
     function hasEvents(date) {
-        // Check if there are any calendar events for this date
-        // This would integrate with a calendar service
         return false
     }
 
@@ -154,13 +246,11 @@ Item {
 
             Repeater {
                 model: 6 // Max 6 weeks
-                delegate: WeekRow {
-                    weekIndex: index
-                    currentMonth: root.currentMonth
-                    today: root.today
-                    selectedDate: root.selectedDate
-                    onDateClicked: (date) => { root.selectedDate = date }
-                }
+                delegate: weekRow
+                currentMonth: root.currentMonth
+                today: root.today
+                selectedDate: root.selectedDate
+                onDateClicked: (date) => { root.selectedDate = date }
             }
         }
 
@@ -231,99 +321,6 @@ Item {
                     }
                 }
             }
-        }
-    }
-}
-
-// Week row component
-Item {
-    id: WeekRow
-    required property int weekIndex
-    required property var currentMonth
-    required property var today
-    required property var selectedDate
-    required property var onDateClicked
-
-    Layout.fillWidth: true
-    implicitHeight: 36
-
-    property var firstDay: firstDayOfMonth(currentMonth)
-    property var daysInMonth: daysInMonth(currentMonth)
-    property var startDate: weekIndex * 7 - firstDay + 1
-
-    function firstDayOfMonth(date) { return new Date(date.getFullYear(), date.getMonth(), 1).getDay() }
-    function daysInMonth(date) { return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate() }
-    function isToday(date) { return date.getDate() === today.getDate() && date.getMonth() === today.getMonth() && date.getFullYear() === today.getFullYear() }
-    function isSelected(date) { return date.getDate() === selectedDate.getDate() && date.getMonth() === selectedDate.getMonth() && date.getFullYear() === selectedDate.getFullYear() }
-    function isCurrentMonth(date) { return date.getMonth() === currentMonth.getMonth() }
-
-    RowLayout {
-        anchors.fill: parent
-        spacing: 0
-
-        Repeater {
-            model: 7
-            delegate: DayCell {
-                Layout.fillWidth: true
-                Layout.alignment: Qt.AlignVCenter
-                dayIndex: index
-                weekIndex: root.weekIndex
-                startDate: root.startDate
-                daysInMonth: root.daysInMonth
-                currentMonth: root.currentMonth
-                today: root.today
-                selectedDate: root.selectedDate
-                onClicked: root.onDateClicked
-            }
-        }
-    }
-}
-
-// Day cell component
-Item {
-    id: DayCell
-    required property int dayIndex
-    required property int weekIndex
-    required property int startDate
-    required property int daysInMonth
-    required property var currentMonth
-    required property var today
-    required property var selectedDate
-    required property var onClicked
-
-    implicitHeight: 36
-
-    property int dayNumber: startDate + dayIndex
-    property bool validDay: dayNumber >= 1 && dayNumber <= daysInMonth
-    property var dateObj: validDay ? new Date(currentMonth.getFullYear(), currentMonth.getMonth(), dayNumber) : null
-    property bool isToday: validDay ? (dateObj.getDate() === today.getDate() && dateObj.getMonth() === today.getMonth() && dateObj.getFullYear() === today.getFullYear()) : false
-    property bool isSelected: validDay ? (dateObj.getDate() === selectedDate.getDate() && dateObj.getMonth() === selectedDate.getMonth() && dateObj.getFullYear() === selectedDate.getFullYear()) : false
-    property bool isCurrentMonth: validDay ? (dateObj.getMonth() === currentMonth.getMonth()) : false
-
-    Rectangle {
-        anchors.fill: parent
-        anchors.margins: 2
-        radius: 8
-        color: isSelected ? Appearance.colors.colPrimary : (isToday ? Appearance.colors.colPrimaryContainer : "transparent")
-        border.width: isToday && !isSelected ? 1 : 0
-        border.color: Appearance.colors.colPrimary
-
-        MouseArea {
-            anchors.fill: parent
-            enabled: validDay
-            cursorShape: Qt.PointingHandCursor
-            onClicked: onClicked(dateObj)
-            hoverEnabled: true
-            onEntered: parent.color = isSelected ? Appearance.colors.colPrimary : Qt.lighter(Appearance.colors.colLayer1, 1.1)
-            onExited: parent.color = isSelected ? Appearance.colors.colPrimary : (isToday ? Appearance.colors.colPrimaryContainer : "transparent")
-        }
-
-        StyledText {
-            anchors.centerIn: parent
-            text: validDay ? dayNumber : ""
-            font.pixelSize: Appearance.font.pixelSize.smaller
-            font.weight: isToday ? Font.Bold : Font.Normal
-            color: isSelected ? Appearance.colors.colOnPrimary : (isCurrentMonth ? Appearance.colors.colOnLayer0 : Appearance.colors.colSubtext)
         }
     }
 }

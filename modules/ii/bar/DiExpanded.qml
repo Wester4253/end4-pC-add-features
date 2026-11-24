@@ -1,6 +1,8 @@
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
+import QtQuick.Effects
+import Qt5Compat.GraphicalEffects
 import Quickshell.Hyprland
 import Quickshell.Services.UPower
 import qs

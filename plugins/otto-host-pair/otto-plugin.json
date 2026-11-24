@@ -1,0 +1,8 @@
+{
+  "id": "otto-host-pair",
+  "name": "Otto Host Pair",
+  "description": "Pair this machine with the Otto daemon over Tailscale and configure daemon features from the end4-pC settings app.",
+  "requirements": {
+    "paseo": ">=0.8.0"
+  }
+}
