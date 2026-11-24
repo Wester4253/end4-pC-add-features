@@ -146,6 +146,40 @@ ContentPage {
                     }
                 }
 
+                // Pair/Unpair action
+                ConfigRow {
+                    Layout.fillWidth: true
+                    Layout.leftMargin: 8
+                    Layout.rightMargin: 8
+                    spacing: 10
+
+                    StyledText {
+                        Layout.fillWidth: true
+                        text: OttoHostPair.paired ? Translation.tr("Unpair from host") : Translation.tr("Pair new host")
+                        color: Appearance.colors.colOnSecondaryContainer
+                    }
+                    StyledText {
+                        text: OttoHostPair.paired ? Translation.tr("Disconnect from the paired Otto host") : Translation.tr("Open Dynamic Island to select a Tailnet device")
+                        color: Appearance.colors.colSubtext
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            if (OttoHostPair.paired) {
+                                OttoHostPair.unpair();
+                            } else {
+                                GlobalStates.settingsOpen = false;
+                                Qt.callLater(() => {
+                                    // Trigger dynamic island expansion to show pairing section
+                                    Quickshell.ipcCall("otto-host-pair", "open-surface");
+                                });
+                            }
+                        }
+                    }
+                }
+
                 ConfigRow {
                     Layout.fillWidth: true
                     Layout.leftMargin: 8

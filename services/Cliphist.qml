@@ -27,10 +27,16 @@ Singleton {
         return entry.replace(/\s+.*$/, "")
     }
 
+    function entryIsImage(entry) {
+        const text = root.entryText(entry);
+        // Check if it's an image (cliphist stores images with [IMG] prefix or similar)
+        return text.startsWith("[IMG]") || text.startsWith("image:") || text.includes("image/png") || text.includes("image/jpeg");
+    }
+
     function isFavorite(entry) {
         if (!root.favorites.length) return false;
         const text = root.entryText(entry);
-        return root.favorites.some(fav => fav.text === text);
+        return root.favorites.some(fav => fav === text || (typeof fav === 'object' && fav.text === text));
     }
 
     function toggleFavorite(entry) {
@@ -41,8 +47,48 @@ Singleton {
         favoritesProc.running = true;
     }
 
+    function pasteEntry(entry) {
+        if (pasteProc.running) return;
+        const id = root.entryId(entry);
+        pasteProc.command = ["cliphist", "decode", id];
+        pasteProc.running = true;
+    }
+
+    function deleteEntry(entry) {
+        if (deleteProc.running) return;
+        const id = root.entryId(entry);
+        deleteProc.command = ["cliphist", "delete", id];
+        deleteProc.running = true;
+    }
+
+    function clearAll() {
+        if (clearProc.running) return;
+        clearProc.command = ["cliphist", "wipe"];
+        clearProc.running = true;
+    }
+
+    // Fuzzy search
+    function fuzzyQuery(query, list) {
+        const src = list ?? root.entries;
+        if (!query || query.trim() === "") return src;
+        
+        const prepared = src.map(e => ({
+            text: root.entryText(e),
+            original: e
+        }));
+        
+        const results = Fuzzy.match(query, prepared, { key: "text", threshold: root.scoreThreshold });
+        return results.map(r => r.original);
+    }
+
     // Legacy pin system (for backward compatibility)
     function pinIndex(entry) {
+        const pins = Config.options.search.clipboardPins ?? []
+        const id = root.entryId(entry)
+        return pins.includes(id)
+    }
+
+    function isPinned(entry) {
         const pins = Config.options.search.clipboardPins ?? []
         const id = root.entryId(entry)
         return pins.includes(id)
@@ -103,6 +149,41 @@ Singleton {
                 } catch (e) {
                     root.favorites = [];
                 }
+            }
+        }
+    }
+
+    Process {
+        id: pasteProc
+        command: ["cliphist", "decode"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                if (text) {
+                    // Write to clipboard
+                    Quickshell.execDetached(["wl-copy", text]);
+                }
+            }
+        }
+    }
+
+    Process {
+        id: deleteProc
+        command: ["cliphist", "delete"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                // Refresh after delete
+                root.refresh();
+            }
+        }
+    }
+
+    Process {
+        id: clearProc
+        command: ["cliphist", "wipe"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                root.entries = [];
+                root.favorites = [];
             }
         }
     }

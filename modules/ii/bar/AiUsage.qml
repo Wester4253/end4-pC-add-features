@@ -21,13 +21,16 @@ MouseArea {
             result.push({ name: "Otto", icon: "otto-symbolic", usage: OttoUsage, kind: "otto" });
         if (Config.options.bar.aiUsage.localLLMEnabled)
             result.push({ name: "Local LLMs", icon: "memory", usage: LocalLLMUsage, kind: "local" });
+        // Add paired remote host
+        if (OttoHostPair.paired && OttoHostPair.pairedHostOnline)
+            result.push({ name: "Otto @ " + (OttoHostPair.pairedHostName !== "" ? OttoHostPair.pairedHostName : OttoHostPair.pairedHost), icon: "device_hub", usage: OttoHostPair, kind: "otto-paired" });
         return result;
     }
 
     // Hide entirely when every enabled provider says there is nothing to show
     // (e.g. Otto enabled but the daemon is unreachable or has no agents).
     visible: providers.some(provider => {
-        if (provider.kind === "otto") return provider.usage.totalSessions > 0;
+        if (provider.kind === "otto" || provider.kind === "otto-paired") return provider.usage.pairedHostActiveAgents > 0 || provider.usage.ottoActiveAgents > 0;
         if (provider.kind === "local") return provider.usage.available;
         return true;
     })
@@ -48,8 +51,8 @@ MouseArea {
                 id: delegateRoot
 
                 required property var modelData
-                readonly property bool needsData: modelData.kind === "codex" || (modelData.kind === "otto" && !modelData.usage.available) || (modelData.kind === "local" && !modelData.usage.available)
-                readonly property bool active: needsData ? modelData.usage.available : (modelData.kind === "local" ? modelData.usage.totalRunning > 0 : modelData.usage.activeSessions > 0)
+                readonly property bool needsData: modelData.kind === "codex" || (modelData.kind === "otto" && !modelData.usage.ottoRunning) || (modelData.kind === "otto-paired" && !modelData.usage.pairedHostOnline) || (modelData.kind === "local" && !modelData.usage.available)
+                readonly property bool active: needsData ? (modelData.kind === "otto-paired" ? modelData.usage.pairedHostOnline : modelData.usage.available) : (modelData.kind === "local" ? modelData.usage.totalRunning > 0 : (modelData.kind === "otto-paired" ? modelData.usage.pairedHostActiveAgents > 0 : modelData.usage.activeSessions > 0))
                 readonly property color providerColor: active ? root.contentColor : (root.contentColorOverridden ? Qt.alpha(root.contentColor, 0.6) : Appearance.colors.colSubtext)
                 columns: root.vertical ? 1 : 2
                 columnSpacing: 5
@@ -67,9 +70,13 @@ MouseArea {
                     Layout.alignment: Qt.AlignCenter
                     text: {
                         const u = modelData.usage;
-                        if (delegateRoot.needsData && !u.available) return "—";
-                        if (modelData.kind === "local") return u.totalRunning > 0 ? `${u.totalRunning} running` : "idle";
-                        return `${Math.round(u.percentage * 100)}%`;
+                        if (delegateRoot.needsData) {
+                            if (modelData.kind === "otto-paired") return u.pairedHostOnline ? "online" : "offline";
+                            return "—";
+                        }
+                        if (modelData.kind === "local") return u.totalRunning > 0 ? u.totalRunning + " running" : "idle";
+                        if (modelData.kind === "otto-paired") return u.pairedHostActiveAgents + " active";
+                        return Math.round(u.percentage * 100) + "%";
                     }
                     font.pixelSize: root.vertical ? Appearance.font.pixelSize.smaller : Appearance.font.pixelSize.small
                     color: providerColor

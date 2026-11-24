@@ -15,6 +15,7 @@ import {
   ottoSessionStatusRpc,
   ottoDesktopLinkRpc,
   ottoSummaryRpc,
+  openSurfaceRpc,
 } from "../shared/tailscale";
 import { execFile } from "child_process";
 import { promisify } from "util";
@@ -533,6 +534,11 @@ function registerTailscale(server: PluginServerContext) {
     } catch {
       // ignore
     }
+  });
+
+  // --- Open Dynamic Island Surface ---
+  server.handle(openSurfaceRpc, async () => {
+    return { success: true };
   });
 }
 

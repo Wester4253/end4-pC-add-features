@@ -238,3 +238,13 @@ export const ottoSummaryRpc = defineRpc({
     pairedHost: z.string().nullable(),
   }),
 });
+
+// --- Open Dynamic Island Surface ---
+
+export const openSurfaceRpc = defineRpc({
+  name: "otto.openSurface",
+  input: z.object({}),
+  output: z.object({
+    success: z.boolean(),
+  }),
+});

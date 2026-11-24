@@ -24,9 +24,10 @@ Item {
     readonly property int wallpapersPage: 1
     readonly property bool wallpaperMode: currentPage === wallpapersPage
     readonly property int homePage: 0
-    readonly property int settingsPage: 4
+    readonly property int settingsPage: 5
     readonly property int presetsPage: 2
     readonly property int mediaPage: 3
+    readonly property int profilesPage: 4
     readonly property bool mediaVisible: currentPage === mediaPage && mediaState.displayedArtFilePath !== ""
     readonly property var mediaColors: mediaVisible ? mediaState.blendedColors : Appearance.colors
 
@@ -160,6 +161,7 @@ Item {
         { name: Translation.tr("Wallpapers"), icon: "wallpaper" },
         { name: Translation.tr("Presets"), icon: "hallway" },
         { name: Translation.tr("Media"), icon: "play_circle" },
+        { name: Translation.tr("Profiles"), icon: "folder_git" },
         { name: Translation.tr("Settings"), icon: "settings" }
     ]
 
@@ -667,6 +669,19 @@ Item {
             active: root.currentPage === root.presetsPage
 
             sourceComponent: DashboardPresetsPage {
+                pager: root
+                staggerMs: root.staggerMs
+            }
+        }
+
+        Loader {
+            id: profilesLoader
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            visible: active
+            active: root.currentPage === root.profilesPage
+
+            sourceComponent: ProfileManager {
                 pager: root
                 staggerMs: root.staggerMs
             }

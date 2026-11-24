@@ -395,6 +395,27 @@ ContentPage {
 
             ContentSubsection {
                 Layout.topMargin: 10
+                title: Translation.tr("Island Style")
+                GroupedList {
+                    ConfigSelectionArray {
+                        text: Translation.tr("Island Style")
+                        icon: "style"
+                        currentValue: Config.options.bar.dynamicIsland.style
+                        onSelected: newValue => { Config.options.bar.dynamicIsland.style = newValue; GlobalStates.refreshBar(); }
+                        options: [
+                            { displayName: Translation.tr("Default (Pill)"), icon: "pill", value: 0 },
+                            { displayName: Translation.tr("Solid Black"), icon: "contrast", value: 1 },
+                            { displayName: Translation.tr("Themed Pill"), icon: "palette", value: 2 },
+                            { displayName: Translation.tr("Glass / Material"), icon: "water_drop", value: 3 },
+                            { displayName: Translation.tr("Notch Style"), icon: "crop_free", value: 4 },
+                            { displayName: Translation.tr("Minimal"), icon: "minimize", value: 5 }
+                        ]
+                    }
+                }
+            }
+
+            ContentSubsection {
+                Layout.topMargin: 10
                 title: Translation.tr("Media")
                 GroupedList {
                     ConfigSelectionArray {
@@ -404,8 +425,10 @@ ContentPage {
                         onSelected: newValue => { Config.options.bar.dynamicIsland.visualizerStyle = newValue; }
                         options: [
                             { displayName: Translation.tr(""),      icon: "block",       value: "none" },
+                            { displayName: Translation.tr("Bars"),  icon: "equalizer",     value: "bars" },
                             { displayName: Translation.tr("Dots"),  icon: "steppers",     value: "dots" },
-                            { displayName: Translation.tr("Wave"),  icon: "ssid_chart",   value: "wave" }
+                            { displayName: Translation.tr("Wave"),  icon: "ssid_chart",   value: "wave" },
+                            { displayName: Translation.tr("Mirror"), icon: "flip",         value: "mirror" }
                         ]
                     }
                     ConfigSwitch {
@@ -413,6 +436,234 @@ ContentPage {
                         text: Translation.tr("Show media controls")
                         checked: Config.options.bar.dynamicIsland.showMediaControls
                         onCheckedChanged: { Config.options.bar.dynamicIsland.showMediaControls = checked; }
+                    }
+                }
+            }
+
+            ContentSubsection {
+                Layout.topMargin: 10
+                title: Translation.tr("Expanded Panel Sections")
+                GroupedList {
+                    ConfigSwitch {
+                        buttonIcon: "expand_more"
+                        text: Translation.tr("Enable expanded panel")
+                        checked: Config.options.bar.dynamicIsland.enableExpanded
+                        onCheckedChanged: { Config.options.bar.dynamicIsland.enableExpanded = checked; }
+                    }
+                    ConfigSelectionArray {
+                        text: Translation.tr("Expand direction")
+                        icon: "vertical_align_bottom"
+                        currentValue: Config.options.bar.dynamicIsland.expandDirection
+                        onSelected: newValue => { Config.options.bar.dynamicIsland.expandDirection = newValue; }
+                        options: [
+                            { displayName: Translation.tr("Auto (bar position)"), icon: "auto_mode", value: "auto" },
+                            { displayName: Translation.tr("Downward"), icon: "keyboard_arrow_down", value: "down" },
+                            { displayName: Translation.tr("Upward"), icon: "keyboard_arrow_up", value: "up" }
+                        ]
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "neurology"
+                        text: Translation.tr("Show AI Usage")
+                        checked: Config.options.bar.dynamicIsland.showAiUsage
+                        onCheckedChanged: { Config.options.bar.dynamicIsland.showAiUsage = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "memory"
+                        text: Translation.tr("Show System Stats")
+                        checked: Config.options.bar.dynamicIsland.showSystemStats
+                        onCheckedChanged: { Config.options.bar.dynamicIsland.showSystemStats = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "partly_cloudy_day"
+                        text: Translation.tr("Show Weather")
+                        checked: Config.options.bar.dynamicIsland.showWeather
+                        onCheckedChanged: { Config.options.bar.dynamicIsland.showWeather = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "calendar_month"
+                        text: Translation.tr("Show Calendar")
+                        checked: Config.options.bar.dynamicIsland.showCalendar
+                        onCheckedChanged: { Config.options.bar.dynamicIsland.showCalendar = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "public"
+                        text: Translation.tr("Show World Clock")
+                        checked: Config.options.bar.dynamicIsland.showWorldClock
+                        onCheckedChanged: { Config.options.bar.dynamicIsland.showWorldClock = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "music_note"
+                        text: Translation.tr("Show Media")
+                        checked: Config.options.bar.dynamicIsland.showMedia
+                        onCheckedChanged: { Config.options.bar.dynamicIsland.showMedia = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "graphic_eq"
+                        text: Translation.tr("Show Visualizer")
+                        checked: Config.options.bar.dynamicIsland.showVisualizer
+                        onCheckedChanged: { Config.options.bar.dynamicIsland.showVisualizer = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "notifications"
+                        text: Translation.tr("Show Notifications")
+                        checked: Config.options.bar.dynamicIsland.showNotifications
+                        onCheckedChanged: { Config.options.bar.dynamicIsland.showNotifications = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "bolt"
+                        text: Translation.tr("Show Quick Actions")
+                        checked: Config.options.bar.dynamicIsland.showQuickActions
+                        onCheckedChanged: { Config.options.bar.dynamicIsland.showQuickActions = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "content_copy"
+                        text: Translation.tr("Show Clipboard")
+                        checked: Config.options.bar.dynamicIsland.showClipboard
+                        onCheckedChanged: { Config.options.bar.dynamicIsland.showClipboard = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "open_in_new"
+                        text: Translation.tr("Show Active Window")
+                        checked: Config.options.bar.dynamicIsland.showActiveWindow
+                        onCheckedChanged: { Config.options.bar.dynamicIsland.showActiveWindow = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "wifi"
+                        text: Translation.tr("Show Network")
+                        checked: Config.options.bar.dynamicIsland.showNetwork
+                        onCheckedChanged: { Config.options.bar.dynamicIsland.showNetwork = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "bluetooth"
+                        text: Translation.tr("Show Bluetooth")
+                        checked: Config.options.bar.dynamicIsland.showBluetooth
+                        onCheckedChanged: { Config.options.bar.dynamicIsland.showBluetooth = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "device_hub"
+                        text: Translation.tr("Show Otto Host Pair")
+                        checked: Config.options.bar.dynamicIsland.showOttoHostPair
+                        onCheckedChanged: { Config.options.bar.dynamicIsland.showOttoHostPair = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "timer"
+                        text: Translation.tr("Show Timers")
+                        checked: Config.options.bar.dynamicIsland.showTimers
+                        onCheckedChanged: { Config.options.bar.dynamicIsland.showTimers = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "screen_record"
+                        text: Translation.tr("Show Recording")
+                        checked: Config.options.bar.dynamicIsland.showRecording
+                        onCheckedChanged: { Config.options.bar.dynamicIsland.showRecording = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "vpn_lock"
+                        text: Translation.tr("Show VPN")
+                        checked: Config.options.bar.dynamicIsland.showVPN
+                        onCheckedChanged: { Config.options.bar.dynamicIsland.showVPN = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "hard_drive"
+                        text: Translation.tr("Show Disk / Storage")
+                        checked: Config.options.bar.dynamicIsland.showDisk
+                        onCheckedChanged: { Config.options.bar.dynamicIsland.showDisk = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "memory"
+                        text: Translation.tr("Show GPU")
+                        checked: Config.options.bar.dynamicIsland.showGPU
+                        onCheckedChanged: { Config.options.bar.dynamicIsland.showGPU = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "task_alt"
+                        text: Translation.tr("Show Processes")
+                        checked: Config.options.bar.dynamicIsland.showProcesses
+                        onCheckedChanged: { Config.options.bar.dynamicIsland.showProcesses = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "whatshot"
+                        text: Translation.tr("Show Docker")
+                        checked: Config.options.bar.dynamicIsland.showDocker
+                        onCheckedChanged: { Config.options.bar.dynamicIsland.showDocker = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "build"
+                        text: Translation.tr("Show Services")
+                        checked: Config.options.bar.dynamicIsland.showServices
+                        onCheckedChanged: { Config.options.bar.dynamicIsland.showServices = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "terminal"
+                        text: Translation.tr("Show Debug Logs")
+                        checked: Config.options.bar.dynamicIsland.showLogs
+                        onCheckedChanged: { Config.options.bar.dynamicIsland.showLogs = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "keyboard"
+                        text: Translation.tr("Show Keybindings")
+                        checked: Config.options.bar.dynamicIsland.showShortcuts
+                        onCheckedChanged: { Config.options.bar.dynamicIsland.showShortcuts = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "system_update"
+                        text: Translation.tr("Show System Updates")
+                        checked: Config.options.bar.dynamicIsland.showUpdates
+                        onCheckedChanged: { Config.options.bar.dynamicIsland.showUpdates = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "save"
+                        text: Translation.tr("Show Profiles")
+                        checked: Config.options.bar.dynamicIsland.showProfiles
+                        onCheckedChanged: { Config.options.bar.dynamicIsland.showProfiles = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "center_focus_strong"
+                        text: Translation.tr("Show Focus Mode")
+                        checked: Config.options.bar.dynamicIsland.showFocus
+                        onCheckedChanged: { Config.options.bar.dynamicIsland.showFocus = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "info"
+                        text: Translation.tr("Show System Info")
+                        checked: Config.options.bar.dynamicIsland.showSystemInfo
+                        onCheckedChanged: { Config.options.bar.dynamicIsland.showSystemInfo = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "search"
+                        text: Translation.tr("Show File Search")
+                        checked: Config.options.bar.dynamicIsland.showFileSearch
+                        onCheckedChanged: { Config.options.bar.dynamicIsland.showFileSearch = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "calculate"
+                        text: Translation.tr("Show Calculator")
+                        checked: Config.options.bar.dynamicIsland.showCalculator
+                        onCheckedChanged: { Config.options.bar.dynamicIsland.showCalculator = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "checklist"
+                        text: Translation.tr("Show Todo / Tasks")
+                        checked: Config.options.bar.dynamicIsland.showTodo
+                        onCheckedChanged: { Config.options.bar.dynamicIsland.showTodo = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "notes"
+                        text: Translation.tr("Show Notes")
+                        checked: Config.options.bar.dynamicIsland.showNotes
+                        onCheckedChanged: { Config.options.bar.dynamicIsland.showNotes = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "translate"
+                        text: Translation.tr("Show Translator")
+                        checked: Config.options.bar.dynamicIsland.showTranslator
+                        onCheckedChanged: { Config.options.bar.dynamicIsland.showTranslator = checked; }
+                    }
+                    ConfigSwitch {
+                        buttonIcon: "music_note"
+                        text: Translation.tr("Show Music Recognition")
+                        checked: Config.options.bar.dynamicIsland.showSongRec
+                        onCheckedChanged: { Config.options.bar.dynamicIsland.showSongRec = checked; }
                     }
                 }
             }

@@ -586,6 +586,7 @@ Singleton {
                     property string daemonUrl: ""
                 }
                 property JsonObject dynamicIsland: JsonObject {
+                    property int style: 0 // 0: Default | 1: Solid Black | 2: Themed Pill | 3: Glass | 4: Notch | 5: Minimal
                     property string visualizerStyle: "dots" // "dots", "wave", "none", "bars", "mirror"
                     property bool showMediaControls: false
                     property string leftWidget: "none"
@@ -606,6 +607,7 @@ Singleton {
                     property bool showActiveWindow: true
                     property bool showNetwork: true
                     property bool showBluetooth: true
+                    property bool showOttoHostPair: true
                     property bool showTimers: true
                     property bool showRecording: true
                     property bool showVPN: true
@@ -1130,6 +1132,12 @@ Singleton {
                     property list<string> fileKeywords: ["anime", "booru", "ecchi", "hentai", "yande.re", "konachan", "breast", "nipples", "pussy", "nsfw", "spoiler", "girl"]
                     property list<string> linkKeywords: ["hentai", "porn", "sukebei", "hitomi.la", "rule34", "gelbooru", "fanbox", "dlsite"]
                 }
+            }
+
+            property JsonObject profileManager: JsonObject {
+                property string activeProfile: ""
+                property list<var> profiles: []
+                property list<var> customSources: []
             }
         }
     }

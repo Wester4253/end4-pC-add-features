@@ -1,82 +1,48 @@
-import type { PluginSurfaceProps } from "@otto-code/plugin/client";
-import { useRpc } from "@otto-code/plugin/client";
-import { useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
-import { Pressable, Text, TextInput, View, ScrollView, ActivityIndicator } from "react-native";
+import React, { useMemo, useState } from "react";
+import { StyleSheet } from "react-native";
 import {
-  tailscaleStatusRpc,
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  ActivityIndicator,
+  Switch,
+  Alert,
+} from "react-native";
+import { useRpc } from "@otto-code/plugin/client";
+import {
   tailscaleFullStatusRpc,
   tailscalePeersRpc,
-  tailscalePairRpc,
-  ottoDaemonStatusRpc,
   ottoDaemonFullStatusRpc,
-  ottoPairRpc,
-  ottoFeaturesRpc,
-  ottoSystemUsageRpc,
   ottoAgentStatusRpc,
   ottoSessionStatusRpc,
-  ottoDesktopLinkRpc,
   ottoSummaryRpc,
+  systemUsageRpc,
+  openSurfaceRpc,
+  openDesktopLinkRpc,
+  tailscaleStatusRpc,
+  ottoDaemonStatusRpc,
 } from "../shared/tailscale";
-import { openExternal } from "./web";
+import { useTheme } from "@otto-code/plugin/client";
+import { useLayout } from "@otto-code/plugin/client";
 
-export function PairSurface({ theme, layout }: PluginSurfaceProps) {
+export default function PairSurface() {
+  const theme = useTheme();
+  const layout = useLayout();
   const c = theme.colors;
 
-  // --- RPCs ---
-  const rpcTailscaleStatus = useRpc(tailscaleStatusRpc);
-  const rpcTailscaleFull = useRpc(tailscaleFullStatusRpc);
-  const rpcTailscalePeers = useRpc(tailscalePeersRpc);
-  const rpcOttoStatus = useRpc(ottoDaemonStatusRpc);
-  const rpcOttoFull = useRpc(ottoDaemonFullStatusRpc);
-  const rpcOttoFeatures = useRpc(ottoFeaturesRpc);
-  const rpcSystemUsage = useRpc(ottoSystemUsageRpc);
-  const rpcAgentStatus = useRpc(ottoAgentStatusRpc);
-  const rpcSessionStatus = useRpc(ottoSessionStatusRpc);
-  const rpcSummary = useRpc(ottoSummaryRpc);
-  const rpcOpenDesktop = useRpc(ottoDesktopLinkRpc);
-
-  // --- Queries ---
-  const tailscaleStatus = useQuery({
-    queryKey: ["tailscale-status"],
-    queryFn: async () => rpcTailscaleStatus({}),
-  });
-  const tailscaleFull = useQuery({
-    queryKey: ["tailscale-full"],
-    queryFn: async () => rpcTailscaleFull({}),
-  });
-  const tailscalePeers = useQuery({
-    queryKey: ["tailscale-peers"],
-    queryFn: async () => rpcTailscalePeers({}),
-  });
-  const ottoStatus = useQuery({
-    queryKey: ["otto-status"],
-    queryFn: async () => rpcOttoStatus({}),
-  });
-  const ottoFull = useQuery({
-    queryKey: ["otto-full"],
-    queryFn: async () => rpcOttoFull({}),
-  });
-  const ottoFeatures = useQuery({
-    queryKey: ["otto-features"],
-    queryFn: async () => rpcOttoFeatures({}),
-  });
-  const systemUsage = useQuery({
-    queryKey: ["system-usage"],
-    queryFn: async () => rpcSystemUsage({}),
-  });
-  const agentStatus = useQuery({
-    queryKey: ["agent-status"],
-    queryFn: async () => rpcAgentStatus({}),
-  });
-  const sessionStatus = useQuery({
-    queryKey: ["session-status"],
-    queryFn: async () => rpcSessionStatus({}),
-  });
-  const summary = useQuery({
-    queryKey: ["otto-summary"],
-    queryFn: async () => rpcSummary({}),
-  });
+  const tailscaleFull = useRpc(tailscaleFullStatusRpc, { pollInterval: 10000 });
+  const tailscalePeers = useRpc(tailscalePeersRpc, { pollInterval: 10000 });
+  const otBasic = useRpc(ottoDaemonStatusRpc, { pollInterval: 10000 });
+  const ottoFull = useRpc(ottoDaemonFullStatusRpc, { pollInterval: 10000 });
+  const agentStatus = useRpc(ottoAgentStatusRpc, { pollInterval: 10000 });
+  const sessionStatus = useRpc(ottoSessionStatusRpc, { pollInterval: 10000 });
+  const summary = useRpc(ottoSummaryRpc, { pollInterval: 10000 });
+  const systemUsage = useRpc(systemUsageRpc, { pollInterval: 10000 });
+  const tailscaleStatus = useRpc(tailscaleStatusRpc, { pollInterval: 10000 });
+  const rpcOpenSurface = useRpc(openSurfaceRpc);
+  const rpcOpenDesktop = useRpc(openDesktopLinkRpc);
 
   const [hostIp, setHostIp] = useState("");
   const [showDetails, setShowDetails] = useState(false);
@@ -236,8 +202,9 @@ export function PairSurface({ theme, layout }: PluginSurfaceProps) {
         fontSize: 11,
         color: c.foregroundMuted,
       },
-    }) as any,
+    }),
     [theme, layout.compact],
+  );
 
   const ts = tailscaleFull.data;
   const tsPeers = tailscalePeers.data ?? [];
@@ -262,383 +229,221 @@ export function PairSurface({ theme, layout }: PluginSurfaceProps) {
   };
 
   return (
-    <ScrollView style={styles.screen}>
-      <View style={styles.card}>
-        <Text style={styles.title}>Otto Host Pair</Text>
-        <Text style={styles.subtitle}>
-          Full status, usage, agent/session info, and desktop app links.
-        </Text>
-
-        <View style={styles.statusRow}>
-          <Text style={styles.statusLabel}>Tailscale</Text>
-          <Text style={statusColor(tsRunning)}>
-            {tsRunning ? "Online" : "Offline"}
-          </Text>
-        </View>
-        {tsIp && (
-          <View style={styles.statusRowCompact}>
-            <Text style={styles.statusLabel}>IP</Text>
-            <Text style={styles.statusValue}>{tsIp}</Text>
-          </View>
-        )}
-        {tsDns && (
-          <View style={styles.statusRowCompact}>
-            <Text style={styles.statusLabel}>DNS</Text>
-            <Text style={styles.statusValue}>{tsDns}</Text>
-          </View>
-        )}
-
-        <View style={styles.statusRow}>
-          <Text style={styles.statusLabel}>Otto Daemon</Text>
-          <Text style={statusColor(ottoRunning)}>
-            {ottoRunning ? "Running" : "Stopped"}
-          </Text>
-        </View>
-
-        <View style={styles.statusRow}>
-          <Text style={styles.statusLabel}>Paired</Text>
-          <Text style={statusColor(paired)}>
-            {paired ? "Yes" : "No"}
-          </Text>
-        </View>
-        {pairedHost && (
-          <View style={styles.statusRowCompact}>
-            <Text style={styles.statusLabel}>Host</Text>
-            <Text style={styles.statusValue}>{pairedHost}</Text>
-          </View>
-        )}
-
-        <View style={styles.divider} />
-
-        {su && (
-          <>
-            <View style={styles.statusRowCompact}>
-              <Text style={styles.statusLabel}>CPU</Text>
-              <Text style={styles.statusValue}>{su.cpuPercent}%</Text>
-            </View>
-            <View style={styles.statusRowCompact}>
-              <Text style={styles.statusLabel}>Memory</Text>
-              <Text style={styles.statusValue}>
-                {su.memoryUsedMB} MB / {su.memoryTotalMB} MB ({su.memoryPercent}%)
-              </Text>
-            </View>
-            <View style={styles.statusRowCompact}>
-              <Text style={styles.statusLabel}>Disk</Text>
-              <Text style={styles.statusValue}>
-                {su.diskUsedGB} GB / {su.diskTotalGB} GB ({su.diskPercent}%)
-              </Text>
-            </View>
-            <View style={styles.statusRowCompact}>
-              <Text style={styles.statusLabel}>Load</Text>
-              <Text style={styles.statusValue}>
-                {su.load1.toFixed(2)} / {su.load5.toFixed(2)} / {su.load15.toFixed(2)}
-              </Text>
-            </View>
-            <View style={styles.statusRowCompact}>
-              <Text style={styles.statusLabel}>Uptime</Text>
-              <Text style={styles.statusValue}>
-                {Math.floor(su.uptimeSeconds / 3600)}h
-                {Math.floor((su.uptimeSeconds % 3600) / 60)}m
-              </Text>
-            </View>
-          </>
-        )}
-
-        {ag && (
-          <>
-            <View style={styles.statusRowCompact}>
-              <Text style={styles.statusLabel}>Agents</Text>
-              <Text style={styles.statusValue}>
-                {ag.activeAgents} active / {ag.totalAgents} total
-              </Text>
-            </View>
-            {ag.failedAgents > 0 && (
-              <View style={styles.statusRowCompact}>
-                <Text style={styles.statusLabel}>Failed</Text>
-                <Text style={styles.statusValueError}>
-                  {ag.failedAgents}
-                </Text>
-              </View>
-            )}
-          </>
-        )}
-
-        {se && (
-          <>
-            <View style={styles.statusRowCompact}>
-              <Text style={styles.statusLabel}>Sessions</Text>
-              <Text style={styles.statusValue}>
-                {se.activeSessions} active / {se.totalSessions} total
-              </Text>
-            </View>
-            {se.failedSessions > 0 && (
-              <View style={styles.statusRowCompact}>
-                <Text style={styles.statusLabel}>Failed</Text>
-                <Text style={styles.statusValueError}>
-                  {se.failedSessions}
-                </Text>
-              </View>
-            )}
-          </>
-        )}
-      </View>
-
-      <View style={styles.card}>
-        <Text style={styles.title}>Open in Otto Desktop</Text>
-        <Text style={styles.subtitle}>
-          Launch the Otto desktop app directly from this surface.
-        </Text>
-        <Pressable style={styles.button} onPress={handleOpenDesktop}>
-          <Text style={styles.buttonText}>
-            {openDesktop.isPending ? "Opening…" : "Open Otto Desktop App"}
-          </Text>
-        </Pressable>
-        {desktopUrl && (
-          <View style={styles.statusRowCompact}>
-            <Text style={styles.statusLabel}>Deep link</Text>
-            <Text style={styles.statusValue}>{desktopUrl}</Text>
-          </View>
-        )}
-      </View>
-
-      <Pressable
-        style={styles.toggleButton}
-        onPressed={() => setShowDetails(!showDetails)}
-      >
-        <Text style={{ ...styles.buttonText, color: c.accent }}>
-          {showDetails ? "Hide" : "Show"} Tailscale Details
-        </Text>
-      </Pressable>
-
-      {showDetails && ts && (
+    <View style={styles.screen}>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {/* Connection Status */}
         <View style={styles.card}>
-          <Text style={styles.title}>Tailscale Network</Text>
+          <Text style={styles.title}>Connection Status</Text>
 
-          <View style={styles.statusRowCompact}>
-            <Text style={styles.statusLabel}>Version</Text>
-            <Text style={styles.statusValue}>{ts.version ?? "unknown"}</Text>
-          </View>
-          <View style={styles.statusRowCompact}>
-            <Text style={styles.statusLabel}>Exit Node</Text>
-            <Text style={styles.statusValue}>
-              {ts.exitNodeStatus ?? "none"}
-            </Text>
-          </View>
-          <View style={styles.statusRowCompact}>
-            <Text style={styles.statusLabel}>Peers</Text>
-            <Text style={styles.statusValue}>
-              {ts.onlinePeerCount} online / {ts.peerCount} total
+          <View style={styles.statusRow}>
+            <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: tsBasic?.online ? c.statusSuccess : c.statusDanger }} />
+            <Text style={styles.statusLabel}>Tailscale</Text>
+            <Text style={[styles.statusValue, { color: tsBasic?.online ? c.statusSuccess : c.statusDanger }]}>
+              {tsBasic?.online ? "Online" : "Offline"}
             </Text>
           </View>
 
-          {tsPeers.length > 0 && (
-            <>
-              <Text style={styles.subtitle} style={{ marginTop: 10 }}>
-                Peers
+          {tsIp && (
+            <View style={styles.statusRowCompact}>
+              <Text style={styles.statusLabel}>IP</Text>
+              <Text style={styles.statusValue}>{tsIp}</Text>
+            </View>
+          )}
+
+          {tsDns && (
+            <View style={styles.statusRowCompact}>
+              <Text style={styles.statusLabel}>DNS</Text>
+              <Text style={styles.statusValue}>{tsDns}</Text>
+            </View>
+          )}
+
+          <View style={styles.statusRow}>
+            <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: ottoRunning ? c.statusSuccess : c.statusDanger }} />
+            <Text style={styles.statusLabel}>Otto Daemon (Local)</Text>
+            <Text style={[styles.statusValue, { color: ottoRunning ? c.statusSuccess : c.statusDanger }]}>
+              {ottoRunning ? "Running" : "Stopped"}
+            </Text>
+          </View>
+
+          {ot?.version && (
+            <View style={styles.statusRowCompact}>
+              <Text style={styles.statusLabel}>Version</Text>
+              <Text style={styles.statusValue}>{ot.version}</Text>
+            </View>
+          )}
+
+          <View style={styles.statusRow}>
+            <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: paired ? c.statusSuccess : c.statusDanger }} />
+            <Text style={styles.statusLabel}>Paired Host</Text>
+            <Text style={[styles.statusValue, { color: paired ? c.statusSuccess : c.statusDanger }]}>
+              {paired ? pairedHost ?? "Connected" : "Not paired"}
+            </Text>
+          </View>
+
+          <View style={{ flexDirection: "row", gap: 8, marginTop: 12 }}>
+            <TouchableOpacity
+              style={[styles.button, { flex: 1 }]}
+              onPress={() => {
+                if (paired) {
+                  // Unpair logic would go here
+                } else {
+                  rpcOpenSurface({});
+                }
+              }}
+            >
+              <Text style={styles.buttonText}>
+                {paired ? "Unpair" : "Open Pairing"}
               </Text>
-              {tsPeers.map((peer) => (
-                <View
-                  key={peer.ip ?? peer.name}
-                  style={styles.peerItem}
-                >
-                  <View>
-                    <Text style={styles.peerName}>{peer.name}</Text>
-                    <Text style={styles.peerIp}>
-                      {peer.ip ?? "—"} • {peer.online ? "Online" : "Offline"}
-                    </Text>
-                  </View>
-                  <Text
-                    style={{
-                      fontSize: 11,
-                      color: peer.online ? c.statusSuccess : c.statusDanger,
-                    }}
-                  >
-                    {peer.exitNode ? "EXIT" : ""}
-                  </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.button, styles.buttonDisabled, { flex: 1 }]}
+              onPress={handleOpenDesktop}
+            >
+              <Text style={[styles.buttonText, { color: c.foregroundMuted }]}>Open Desktop</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Tailnet Peers */}
+        <View style={styles.card}>
+          <Text style={styles.title}>Tailnet Devices ({tsPeers.length})</Text>
+          {tsPeers.length === 0 ? (
+            <Text style={styles.subtitle}>No other devices on tailnet</Text>
+          ) : (
+            tsPeers.map((peer) => (
+              <View key={peer.name} style={styles.peerItem}>
+                <View>
+                  <Text style={styles.peerName}>{peer.name}</Text>
+                  <Text style={styles.peerIp}>{peer.ip} · {peer.online ? "Online" : "Offline"}</Text>
                 </View>
-              ))}
-            </>
+                <TouchableOpacity
+                  style={{ backgroundColor: c.accent, borderRadius: 6, paddingHorizontal: 12, paddingVertical: 6 }}
+                  onPress={() => {
+                    // Pair with this peer
+                    // This would call the pair RPC
+                  }}
+                  disabled={!peer.online}
+                >
+                  <Text style={{ color: c.accentForeground, fontWeight: "600" }}>
+                    {paired && pairedHost === peer.name ? "Paired" : "Pair"}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            ))
           )}
         </View>
-      )}
 
-      <Pressable
-        style={styles.toggleButton}
-        onPressed={() => setShowDetails(!showDetails)}
-      >
-        <Text style={{ ...styles.buttonText, color: c.accent }}>
-          {showDetails ? "Hide" : "Show"} Otto Daemon Details
-        </Text>
-      </Pressable>
-
-      {showDetails && ot && (
+        {/* Local Otto Daemon */}
         <View style={styles.card}>
-          <Text style={styles.title}>Otto Daemon</Text>
-
+          <Text style={styles.title}>Local Otto Daemon</Text>
           <View style={styles.statusRowCompact}>
-            <Text style={styles.statusLabel}>Version</Text>
-            <Text style={styles.statusValue}>{ot.version ?? "unknown"}</Text>
+            <Text style={styles.statusLabel}>Active Agents</Text>
+            <Text style={styles.statusValue}>{ot?.activeAgents ?? 0}</Text>
           </View>
           <View style={styles.statusRowCompact}>
-            <Text style={styles.statusLabel}>Server ID</Text>
-            <Text style={styles.statusValue}>{ot.serverId ?? "—"}</Text>
+            <Text style={styles.statusLabel}>Active Sessions</Text>
+            <Text style={styles.statusValue}>{ot?.activeSessions ?? 0}</Text>
           </View>
           <View style={styles.statusRowCompact}>
-            <Text style={styles.statusLabel}>Hostname</Text>
-            <Text style={styles.statusValue}>{ot.hostname ?? "—"}</Text>
-          </View>
-          <View style={styles.statusRowCompact}>
-            <Text style={styles.statusLabel}>Listen</Text>
-            <Text style={styles.statusValue}>{ot.listen ?? "—"}</Text>
-          </View>
-          <View style={styles.statusRowCompact}>
-            <Text style={styles.statusLabel}>Sessions</Text>
+            <Text style={styles.statusLabel}>Uptime</Text>
             <Text style={styles.statusValue}>
-              {ot.activeSessions ?? "—"}
+              {ot?.uptimeSeconds ? `${Math.floor(ot.uptimeSeconds / 3600)}h ${Math.floor((ot.uptimeSeconds % 3600) / 60)}m` : "—"}
             </Text>
           </View>
           <View style={styles.statusRowCompact}>
-            <Text style={styles.statusLabel}>Agents</Text>
-            <Text style={styles.statusValue}>
-              {ot.activeAgents ?? "—"}
-            </Text>
+            <Text style={styles.statusLabel}>Memory</Text>
+            <Text style={styles.statusValue}>{ot?.memoryUsageMB ?? 0} MB</Text>
+          </View>
+          <View style={styles.statusRowCompact}>
+            <Text style={styles.statusLabel}>CPU</Text>
+            <Text style={styles.statusValue}>{ot?.cpuPercent ?? 0}%</Text>
           </View>
         </View>
-      )}
 
-      <Pressable
-        style={styles.toggleButton}
-        onPressed={() => setShowDetails(!showDetails)}
-      >
-        <Text style={{ ...styles.buttonText, color: c.accent }}>
-          {showDetails ? "Hide" : "Show"} Agent Status
-        </Text>
-      </Pressable>
-
-      {showDetails && ag && ag.agents.length > 0 && (
-        <View style={styles.card}>
-          <Text style={styles.title}>Agents</Text>
-          {ag.agents.map((agent: any) => (
-            <View key={agent.id} style={styles.agentItem}>
-              <View>
-                <Text style={styles.agentName}>
-                  {agent.title ?? "Untitled"}
-                </Text>
-                <Text style={styles.agentMeta}>
-                  {agent.provider} • {agent.status}
-                </Text>
-              </View>
-              <Text
-                style={{
-                  fontSize: 11,
-                  color:
-                    agent.lastTurnOutcome === "failed"
-                      ? c.statusDanger
-                    : agent.status === "active" ||
-                      agent.status === "running"
-                      ? c.statusSuccess
-                      : c.foregroundMuted,
-                }}
-              >
-                {agent.lastTurnOutcome ?? "—"}
-              </Text>
-            </View>
-          ))}
-        </View>
-      )}
-
-      <View style={styles.card}>
-        <Text style={styles.title}>Pair New Host</Text>
-        <Text style={styles.subtitle}>
-          Connect to a remote Otto daemon over Tailscale.
-        </Text>
-
-        <TextInput
-          style={styles.input}
-          placeholder="Remote Tailscale IP (e.g. 100.x.y.z)"
-          value={hostIp}
-          onChangeText={setHostIp}
-          autoCapitalize="none"
-        />
-
-        <Pressable
-          style={[styles.button, !tsRunning || !hostIp ? styles.buttonDisabled : {}]}
-          disabled={!tsRunning || !hostIp}
-          onPress={async () => {
-            try {
-              await rpcTailscalePairRpc({ hostIp });
-              setHostIp("");
-            } catch (e) {
-              console.error("Pair failed:", e);
-            }
-          }}
-        >
-          <Text style={styles.buttonText}>
-            {tsRunning ? "Pair Tailscale Host" : "Tailscale Offline"}
-          </Text>
-        </Pressable>
-
-        <View style={styles.divider} />
-
-        <Pressable
-          style={[styles.button, !tsRunning || !hostIp ? styles.buttonDisabled : {}]}
-          disabled={!tsRunning || !hostIp}
-          onPress={async () => {
-            try {
-              await rpcOttoPairRpc({ tailscaleIp: hostIp });
-              setHostIp("");
-            } catch (e) {
-              console.error("Link failed:", e);
-            }
-          }}
-        >
-          <Text style={styles.buttonText}>
-            {tsRunning ? "Link Otto Daemon" : "Tailscale Offline"}
-          </Text>
-        </Pressable>
-      </View>
-
-      <View style={styles.card}>
-        <Text style={styles.title}>Daemon Features</Text>
-        {ottoFeatures.isPending ? (
-          <ActivityIndicator size="small" />
-        ) : (
-          <>
+        {/* Remote Host (if paired) */}
+        {paired && (
+          <View style={styles.card}>
+            <Text style={styles.title}>Paired Host: {pairedHost}</Text>
             <View style={styles.statusRowCompact}>
-              <Text style={styles.statusLabel}>Plugins</Text>
-              <Text style={statusColor(ottoFeatures.data?.pluginsEnabled ?? false)}>
-                {ottoFeatures.data?.pluginsEnabled ? "On" : "Off"}
+              <Text style={styles.statusLabel}>Active Agents</Text>
+              <Text style={styles.statusValue}>{ag?.activeAgents ?? 0}</Text>
+            </View>
+            <View style={styles.statusRowCompact}>
+              <Text style={styles.statusLabel}>Active Sessions</Text>
+              <Text style={styles.statusValue}>{se?.activeSessions ?? 0}</Text>
+            </View>
+            <View style={styles.statusRowCompact}>
+              <Text style={styles.statusLabel}>Agent Limit</Text>
+              <Text style={styles.statusValue}>
+                {ag?.agentLimit ? `${ag.agentUsed} / ${ag.agentLimit}` : "—"}
               </Text>
             </View>
             <View style={styles.statusRowCompact}>
-              <Text style={styles.statusLabel}>Relay</Text>
-              <Text style={statusColor(ottoFeatures.data?.relayEnabled ?? false)}>
-                {ottoFeatures.data?.relayEnabled ? "On" : "Off"}
+              <Text style={styles.statusLabel}>Session Limit</Text>
+              <Text style={styles.statusValue}>
+                {se?.sessionLimit ? `${se.sessionUsed} / ${se.sessionLimit}` : "—"}
               </Text>
             </View>
-            <View style={styles.statusRowCompact}>
-              <Text style={styles.statusLabel}>Voice</Text>
-              <Text style={statusColor(ottoFeatures.data?.voiceEnabled ?? false)}>
-                {ottoFeatures.data?.voiceEnabled ? "On" : "Off"}
-              </Text>
-            </View>
-            <View style={styles.statusRowCompact}>
-              <Text style={styles.statusLabel}>Brain</Text>
-              <Text style={statusColor(ottoFeatures.data?.brainEnabled ?? false)}>
-                {ottoFeatures.data?.brainEnabled ? "On" : "Off"}
-              </Text>
-            </View>
-          </>
+
+            {/* Remote Agents List */}
+            {ag?.agents && ag.agents.length > 0 && (
+              <>
+                <View style={styles.divider} />
+                <Text style={{ ...styles.subtitle, marginTop: 8 }}>Remote Agents</Text>
+                {ag.agents.map((agent: any) => (
+                  <View key={agent.id} style={styles.agentItem}>
+                    <View>
+                      <Text style={styles.agentName}>{agent.title ?? agent.id}</Text>
+                      <Text style={styles.agentMeta}>{agent.provider} · {agent.status}</Text>
+                    </View>
+                    <View
+                      style={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: 4,
+                        backgroundColor: agent.status === "active" || agent.status === "running" ? c.statusSuccess : c.foregroundMuted,
+                      }}
+                    />
+                  </View>
+                ))}
+              </>
+            )}
+          </View>
         )}
-      </View>
 
-      <View style={styles.card}>
-        <Text style={styles.title}>Otto Desktop App</Text>
-        <Text style={styles.subtitle}>
-          Use the Otto desktop app (not the web UI) to manage agents, plugins,
-          and settings locally.
-        </Text>
-      </View>
-    </ScrollView>
+        {/* System Usage */}
+        <View style={styles.card}>
+          <Text style={styles.title}>System</Text>
+          <View style={styles.statusRowCompact}>
+            <Text style={styles.statusLabel}>CPU</Text>
+            <Text style={styles.statusValue}>{su?.cpuPercent ?? 0}%</Text>
+          </View>
+          <View style={styles.statusRowCompact}>
+            <Text style={styles.statusLabel}>Memory</Text>
+            <Text style={styles.statusValue}>
+              {su?.memoryUsedMB ?? 0} / {su?.memoryTotalMB ?? 0} MB ({su?.memoryPercent ?? 0}%)
+            </Text>
+          </View>
+          <View style={styles.statusRowCompact}>
+            <Text style={styles.statusLabel}>Disk</Text>
+            <Text style={styles.statusValue}>
+              {su?.diskUsedGB ?? 0} / {su?.diskTotalGB ?? 0} GB ({su?.diskPercent ?? 0}%)
+            </Text>
+          </View>
+          <View style={styles.statusRowCompact}>
+            <Text style={styles.statusLabel}>Load</Text>
+            <Text style={styles.statusValue}>
+              {su?.load1?.toFixed(2) ?? 0} / {su?.load5?.toFixed(2) ?? 0} / {su?.load15?.toFixed(2) ?? 0}
+            </Text>
+          </View>
+          <View style={styles.statusRowCompact}>
+            <Text style={styles.statusLabel}>Uptime</Text>
+            <Text style={styles.statusValue}>
+              {su?.uptimeSeconds ? `${Math.floor(su.uptimeSeconds / 3600)}h ${Math.floor((su.uptimeSeconds % 3600) / 60)}m` : "—"}
+            </Text>
+          </View>
+        </View>
+      </ScrollView>
+    </View>
   );
 }

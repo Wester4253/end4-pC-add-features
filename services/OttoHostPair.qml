@@ -21,8 +21,9 @@ Singleton {
     property string tailscaleExitNodeIP: ""
     property int tailscalePeerCount: 0
     property int tailscaleOnlinePeerCount: 0
+    property var tailscalePeers: []
 
-    // --- Otto Daemon ---
+    // --- Otto Daemon (local) ---
     property bool ottoRunning: false
     property string ottoVersion: ""
     property string ottoServerId: ""
@@ -36,21 +37,32 @@ Singleton {
     property bool ottoPluginsEnabled: false
     property bool ottoRelayEnabled: false
     property bool ottoVoiceEnabled: false
-    // --- Agent / Session Status ---
-    property int agentTotal: 0
-    property int agentActive: 0
-    property int agentFailed: 0
-    property string agentLastError: ""
-    property string agentLastErrorAgent: ""
-    property int sessionTotal: 0
-    property int sessionActive: 0
-    property int sessionCompleted: 0
-    property int sessionFailed: 0
+    property bool ottoBrainEnabled: false
 
-    // --- Desktop App Link ---
-    property string desktopUrl: "otto://"
+    // --- Paired Remote Host ---
+    property bool paired: false
+    property string pairedHost: ""          // DNS name of paired host
+    property string pairedHostIp: ""        // Tailscale IP of paired host
+    property string pairedHostName: ""      // Display name of paired host
+    property bool pairedHostOnline: false
+    property string pairedHostOttoVersion: ""
+    property int pairedHostActiveSessions: 0
+    property int pairedHostActiveAgents: 0
+    property var pairedHostAgents: []
+    property var pairedHostSessions: []
+    property int pairedHostAgentTotal: 0
+    property int pairedHostAgentActive: 0
+    property int pairedHostAgentFailed: 0
+    property int pairedHostSessionTotal: 0
+    property int pairedHostSessionActive: 0
+    property int pairedHostSessionCompleted: 0
+    property int pairedHostSessionFailed: 0
+    property int pairedHostAgentLimit: 0
+    property int pairedHostAgentUsed: 0
+    property int pairedHostSessionLimit: 0
+    property int pairedHostSessionUsed: 0
 
-    // --- System ---
+    // --- System (local) ---
     property int systemCpuPercent: 0
     property int systemMemoryTotalMB: 0
     property int systemMemoryUsedMB: 0
@@ -63,9 +75,8 @@ Singleton {
     property number systemLoad15: 0
     property int systemUptimeSeconds: 0
 
-    // --- Pairing ---
-    property bool paired: false
-    property string pairedHost: ""
+    // --- Pairing state file ---
+    readonly property var pairedHostFile: "/home/otto/.otto/host-pair-state.json"
 
     // --- Processes ---
     Process {
@@ -97,9 +108,17 @@ Singleton {
                             });
                         });
                     }
+                    root.tailscalePeers = peers;
                     root.tailscalePeerCount = peers.length;
                     root.tailscaleOnlinePeerCount = peers.filter(p => p.online).length;
-                    root.tailscalePeers = peers;
+
+                    // Update paired host online status
+                    if (root.pairedHost !== "") {
+                        const pairedPeer = peers.find(p => p.name === root.pairedHost || p.ip === root.pairedHostIp);
+                        if (pairedPeer) {
+                            root.pairedHostOnline = pairedPeer.online;
+                        }
+                    }
                 } catch (e) {
                     root.tailscaleRunning = false;
                     console.error("[OttoHostPair] Failed to parse tailscale status:", e);
@@ -137,10 +156,41 @@ Singleton {
         }
     }
 
+    // Fetch paired host status via its Tailscale IP
+    Process {
+        id: pairedHostStatusProc
+        command: ["sh", "-c", ""]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                try {
+                    const status = JSON.parse(text);
+                    root.pairedHostOttoVersion = status.version ?? "";
+                    root.pairedHostActiveSessions = status.activeSessions ?? 0;
+                    root.pairedHostActiveAgents = status.activeAgents ?? 0;
+                    root.pairedHostAgents = status.agents ?? [];
+                    root.pairedHostSessions = status.sessions ?? [];
+                    root.pairedHostAgentTotal = status.agentTotal ?? 0;
+                    root.pairedHostAgentActive = status.agentActive ?? 0;
+                    root.pairedHostAgentFailed = status.agentFailed ?? 0;
+                    root.pairedHostSessionTotal = status.sessionTotal ?? 0;
+                    root.pairedHostSessionActive = status.sessionActive ?? 0;
+                    root.pairedHostSessionCompleted = status.sessionCompleted ?? 0;
+                    root.pairedHostSessionFailed = status.sessionFailed ?? 0;
+                    root.pairedHostAgentLimit = status.agentLimit ?? 0;
+                    root.pairedHostAgentUsed = status.agentUsed ?? 0;
+                    root.pairedHostSessionLimit = status.sessionLimit ?? 0;
+                    root.pairedHostSessionUsed = status.sessionUsed ?? 0;
+                } catch (e) {
+                    console.error("[OttoHostPair] Failed to parse paired host status:", e);
+                }
+            }
+        }
+    }
+
     Process {
         id: systemUsageProc
         command: ["sh", "-c",
-            "echo '{\"cpuPercent\":$(top -bn1 | grep 'Cpu(s)' | awk '{print $2}' | cut -d'%' -f1 | cut -d'.' -f1),'memoryTotalMB':$(free -m | grep Mem | awk '{print $2}'),\"memoryUsedMB':$(free -m | grep Mem | awk '{print $3}'),\"diskTotalGB':$(df -BG / | awk 'NR==2{print $2}' | tr -d 'G'),\"diskUsedGB':$(df -BG / | awk 'NR==2{print $3}' | tr -d 'G'),\"load1':$(cat /proc/loadavg | awk '{print $1}'),\"load5':$(cat /proc/loadavg | awk '{print $2}'),\"load15':$(cat /proc/loadavg | awk '{print $3}'),\"uptimeSeconds':$(cat /proc/uptime | awk '{print int($1)}')}'"
+            "echo '{\"cpuPercent\":$(top -bn1 | grep \"Cpu(s)\" | awk '{print $2}' | cut -d'%' -f1 | cut -d'.' -f1),\"memoryTotalMB\":$(free -m | grep Mem | awk '{print $2}'),\"memoryUsedMB\":$(free -m | grep Mem | awk '{print $3}'),\"diskTotalGB\":$(df -BG / | awk 'NR==2{print $2}' | tr -d 'G'),\"diskUsedGB\":$(df -BG / | awk 'NR==2{print $3}' | tr -d 'G'),\"load1\":$(cat /proc/loadavg | awk '{print $1}'),\"load5\":$(cat /proc/loadavg | awk '{print $2}'),\"load15\":$(cat /proc/loadavg | awk '{print $3}'),\"uptimeSeconds\":$(cat /proc/uptime | awk '{print int($1)}')}'"
         ]
         stdout: StdioCollector {
             onStreamFinished: {
@@ -164,9 +214,7 @@ Singleton {
         }
     }
 
-    // --- Paired host state ---
-    readonly property var pairedHostFile: "/home/otto/.otto/host-pair-state.json"
-
+    // --- Load paired host state ---
     Process {
         id: pairedHostProc
         command: ["sh", "-c", `cat ${root.pairedHostFile} 2>/dev/null || echo '{}'`]
@@ -175,38 +223,18 @@ Singleton {
                 try {
                     const state = JSON.parse(text);
                     root.pairedHost = state.pairedHost ?? "";
+                    root.pairedHostIp = state.pairedHostIp ?? "";
+                    root.pairedHostName = state.pairedHostName ?? "";
                     root.paired = root.pairedHost !== "" && root.pairedHost !== null;
                 } catch (e) {
                     root.pairedHost = "";
+                    root.pairedHostIp = "";
+                    root.pairedHostName = "";
                     root.paired = false;
                 }
             }
-
-    // --- Summary status file ---
-    readonly property var summaryFile: "/home/otto/.otto/host-pair-summary.json"
-
-    Process {
-        id: summaryProc
-        command: ["sh", "-c", `cat ${root.summaryFile} 2>/dev/null || echo '{}'`]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                try {
-                    const summary = JSON.parse(text);
-                    const ag = summary.agents ?? {};
-                    const ss = summary.sessions ?? {};
-                    root.agentTotal = ag.total ?? 0;
-                    root.agentActive = ag.active ?? 0;
-                    root.agentFailed = ag.failed ?? 0;
-                    root.sessionTotal = ss.total ?? 0;
-                    root.sessionActive = ss.active ?? 0;
-                    root.sessionCompleted = ss.completed ?? 0;
-                    root.sessionFailed = ss.failed ?? 0;
-                } catch (e) {
-                    console.error("[OttoHostPair] Failed to parse summary:", e);
-                }
-            }
         }
-
+    }
 
     // --- Refresh all ---
     function refresh() {
@@ -215,7 +243,58 @@ Singleton {
         ottoStatusProc.running = true;
         systemUsageProc.running = true;
         pairedHostProc.running = true;
-        summaryProc.running = true;
+
+        // If paired, fetch remote host status
+        if (root.paired && root.pairedHostIp !== "") {
+            pairedHostStatusProc.command = ["sh", "-c", `curl -s --max-time 5 http://${root.pairedHostIp}:6868/api/status 2>/dev/null || echo '{}'`];
+            pairedHostStatusProc.running = true;
+        }
+    }
+
+    // Pair with a tailnet device
+    function pairWithHost(hostName, hostIp, displayName) {
+        const state = {
+            pairedHost: hostName,
+            pairedHostIp: hostIp,
+            pairedHostName: displayName,
+            pairedAt: new Date().toISOString()
+        };
+        const cmd = `mkdir -p /home/otto/.otto && echo '${JSON.stringify(state)}' > ${root.pairedHostFile}`;
+        Quickshell.execDetached(["sh", "-c", cmd]);
+
+        // Update local state immediately
+        root.pairedHost = hostName;
+        root.pairedHostIp = hostIp;
+        root.pairedHostName = displayName;
+        root.paired = true;
+
+        // Save to config for OttoUsage service
+        Config.options.ottoHostPair.tailscaleIp = hostIp;
+        Config.options.ottoHostPair.daemonUrl = `http://${hostIp}:6868`;
+        Config.options.ottoHostPair.paired = true;
+
+        // Refresh to get remote status
+        refresh();
+    }
+
+    // Unpair
+    function unpair() {
+        Quickshell.execDetached(["sh", "-c", `rm -f ${root.pairedHostFile}`]);
+        root.pairedHost = "";
+        root.pairedHostIp = "";
+        root.pairedHostName = "";
+        root.paired = false;
+        root.pairedHostOnline = false;
+        root.pairedHostOttoVersion = "";
+        root.pairedHostActiveSessions = 0;
+        root.pairedHostActiveAgents = 0;
+        root.pairedHostAgents = [];
+        root.pairedHostSessions = [];
+
+        Config.options.ottoHostPair.tailscaleIp = "";
+        Config.options.ottoHostPair.daemonUrl = "";
+        Config.options.ottoHostPair.paired = false;
+    }
 
     Component.onCompleted: {
         Qt.callLater(() => {
