@@ -578,6 +578,12 @@ Singleton {
                     property int tokenLimit: 1000000
                     property int updateInterval: 60
                 }
+                property JsonObject ottoHostPair: JsonObject {
+                    property bool enable: true
+                    property string tailscaleIp: ""
+                    property bool paired: false
+                    property string daemonUrl: ""
+                }
                 property JsonObject dynamicIsland: JsonObject {
                     property string visualizerStyle: "dots" // "dots", "wave", "none", "bars", "mirror"
                     property bool showMediaControls: false
