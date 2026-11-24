@@ -10,13 +10,18 @@ import qs
 import qs.services
 import qs.modules.common
 import qs.modules.common.widgets
+import qs.modules.ii.bar
 
 Item {
     id: root
     property bool mirrored: false
 
-    // === Configuration ===
-    readonly property real pillHeight: 32
+    // === Style System ===
+    readonly property var islandStyle: IslandStyles
+    readonly property int activeStyle: Config.options.bar.dynamicIsland.style ?? 0
+
+    // === Configuration (from style system) ===
+    readonly property real pillHeight: islandStyle.pillHeight
     readonly property real idleCollapsedWidth: 144
     readonly property real sessionWidth: 164
     readonly property real aiChipWidth: 180
@@ -213,8 +218,8 @@ Item {
         if (Config.options.bar.aiUsage.ompEnabled && OmpUsage.available)
             parts.push(`O:${OmpUsage.requestsLastMinute}/${OmpUsage.rpmLimit}`);
         if (Config.options.bar.aiUsage.ottoEnabled && OttoUsage.available)
-            parts.push(`☺:${OttoUsage.activeSessions}/${OttoUsage.totalSessions}`);
-        return parts.join(" • ");
+            parts.push(`\u263A:${OttoUsage.activeSessions}/${OttoUsage.totalSessions}`);
+        return parts.join(" \u2022 ");
     }
 
     // === Content Providers ===
@@ -287,16 +292,16 @@ Item {
         anchors.left: parent.left
         width: root.displayedProvider?.width ?? root.idleWidth
         height: root.pillHeight
-        color: root.isMaterial || (GlobalStates.barCenterOnly && Config.options.bar.cornerStyle === 0) ? "transparent" : Config.options.bar.followFrameColor
-            ? Appearance.getColorFromName(Config.options.bar.frameColor)
-            : Appearance.colors.colUiBackground
-        radius: height / 2
+        color: root.islandStyle.pillColor
+        radius: root.islandStyle.radius
         clip: true
         visible: !root.vertical
+        border.width: root.islandStyle.borderWidth
+        border.color: root.islandStyle.pillBorder
 
         Behavior on width {
             NumberAnimation {
-                duration: 350
+                duration: root.islandStyle.pillAnimDuration
                 easing.type: Easing.BezierSpline
                 easing.bezierCurve: Appearance.animationCurves.expressiveDefaultSpatial
             }
@@ -492,8 +497,8 @@ Item {
                 MaterialShapeWrappedMaterialSymbol {
                     anchors.fill: parent
                     wrappedShape: MaterialShape.Shape.Cookie7Sided
-                    color: root.isMaterial ? Appearance.colors.colPrimary : Appearance.colors.colLayer0
-                    colSymbol: root.isMaterial ? Appearance.colors.colOnPrimary : Appearance.colors.colOnLayer0
+                    color: root.activeStyle === 1 ? Appearance.colors.colPrimary : Appearance.colors.colLayer0
+                    colSymbol: root.activeStyle === 1 ? Appearance.colors.colOnPrimary : Appearance.colors.colOnLayer0
                     text: root.iconForProviderId(badgeItem.modelData.id)
                     iconSize: 16
                     fill: 1
@@ -532,6 +537,16 @@ Item {
             if (!root.expanded) {
                 root.manualFocusId = ""
                 root.forceIdle = false
+            }
+        }
+    }
+
+    // IPC handler for opening dynamic island from Otto Host Pair plugin
+    IpcHandler {
+        target: "otto-host-pair"
+        function openSurface(): void {
+            if (Config.options.bar.dynamicIsland.enableExpanded) {
+                root.expanded = true;
             }
         }
     }

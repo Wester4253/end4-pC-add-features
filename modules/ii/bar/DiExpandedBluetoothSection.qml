@@ -11,6 +11,180 @@ Item {
     required property Item di
     Layout.fillWidth: true
 
+    // Connected device card component
+    Component {
+        id: bluetoothDeviceCard
+        Item {
+            property var device: modelData
+
+            property string batteryStr: device.battery !== undefined ? ` • ${Math.round(device.battery * 100)}%` : ""
+
+            Rectangle {
+                anchors.fill: parent
+                radius: 12
+                color: Appearance.colors.colLayer1
+                border.width: 1
+                border.color: Appearance.colors.colOutlineVariant
+
+                RowLayout {
+                    anchors.fill: parent
+                    Layout.leftMargin: 12
+                    Layout.rightMargin: 12
+                    spacing: 12
+
+                    // Device icon
+                    Rectangle {
+                        Layout.alignment: Qt.AlignVCenter
+                        implicitWidth: 40
+                        implicitHeight: 40
+                        radius: 20
+                        color: Appearance.colors.colPrimary
+                        opacity: 0.15
+
+                        MaterialSymbol {
+                            anchors.centerIn: parent
+                            text: device.icon ?? "bluetooth"
+                            iconSize: 20
+                            fill: 1
+                            color: Appearance.colors.colPrimary
+                        }
+                    }
+
+                    // Device info
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        spacing: -2
+
+                        StyledText {
+                            Layout.fillWidth: true
+                            text: device.name ?? device.alias ?? Translation.tr("Unknown Device")
+                            font.pixelSize: Appearance.font.pixelSize.normal
+                            font.weight: Font.Medium
+                            color: Appearance.colors.colOnLayer0
+                        }
+
+                        StyledText {
+                            Layout.fillWidth: true
+                            text: `${device.mac ?? ""}${batteryStr}`
+                            font.pixelSize: Appearance.font.pixelSize.smaller
+                            color: Appearance.colors.colSubtext
+                        }
+                    }
+
+                    // Actions
+                    RowLayout {
+                        spacing: 4
+
+                        MouseArea {
+                            Layout.preferredWidth: 36
+                            Layout.preferredHeight: 36
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: BluetoothStatus.toggleConnect(device.mac)
+                            hoverEnabled: true
+                            MaterialSymbol {
+                                anchors.centerIn: parent
+                                text: device.connected ? "bluetooth_connected" : "bluetooth_disabled"
+                                iconSize: 20
+                                fill: 1
+                                color: device.connected ? Appearance.colors.colPrimary : Appearance.colors.colSubtext
+                            }
+                        }
+
+                        MouseArea {
+                            Layout.preferredWidth: 36
+                            Layout.preferredHeight: 36
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: BluetoothStatus.removeDevice(device.mac)
+                            MaterialSymbol {
+                                anchors.centerIn: parent
+                                text: "delete"
+                                iconSize: 18
+                                fill: 1
+                                color: Appearance.colors.colSubtext
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Available device card component
+    Component {
+        id: bluetoothAvailableCard
+        Item {
+            property var device: modelData
+            Layout.fillWidth: true
+            implicitHeight: 56
+
+            Rectangle {
+                anchors.fill: parent
+                radius: 12
+                color: Appearance.colors.colLayer1
+                border.width: 1
+                border.color: Appearance.colors.colOutlineVariant
+
+                RowLayout {
+                    anchors.fill: parent
+                    Layout.leftMargin: 12
+                    Layout.rightMargin: 12
+                    spacing: 12
+
+                    Rectangle {
+                        Layout.alignment: Qt.AlignVCenter
+                        implicitWidth: 40
+                        implicitHeight: 40
+                        radius: 20
+                        color: Appearance.colors.colPrimary
+                        opacity: 0.15
+
+                        MaterialSymbol {
+                            anchors.centerIn: parent
+                            text: device.icon ?? "bluetooth"
+                            iconSize: 20
+                            fill: 1
+                            color: Appearance.colors.colPrimary
+                        }
+                    }
+
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        spacing: -2
+
+                        StyledText {
+                            Layout.fillWidth: true
+                            text: device.name ?? device.alias ?? Translation.tr("Unknown Device")
+                            font.pixelSize: Appearance.font.pixelSize.normal
+                            font.weight: Font.Medium
+                            color: Appearance.colors.colOnLayer0
+                        }
+
+                        StyledText {
+                            Layout.fillWidth: true
+                            text: device.mac ?? ""
+                            font.pixelSize: Appearance.font.pixelSize.smaller
+                            color: Appearance.colors.colSubtext
+                        }
+                    }
+
+                    MouseArea {
+                        Layout.preferredWidth: 36
+                        Layout.preferredHeight: 36
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: BluetoothStatus.pair(device.mac)
+                        MaterialSymbol {
+                            anchors.centerIn: parent
+                            text: "add"
+                            iconSize: 20
+                            fill: 1
+                            color: Appearance.colors.colPrimary
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     ColumnLayout {
         Layout.fillWidth: true
         spacing: 8
@@ -78,10 +252,9 @@ Item {
 
                         Repeater {
                             model: BluetoothStatus.devices
-                            delegate: BluetoothDeviceCard {
-                                Layout.fillWidth: true
-                                device: modelData
-                            }
+                            delegate: bluetoothDeviceCard
+                            Layout.fillWidth: true
+                            device: modelData
                         }
                     }
                 }
@@ -113,10 +286,9 @@ Item {
 
                         Repeater {
                             model: BluetoothStatus.availableDevices.slice(0, 10)
-                            delegate: BluetoothAvailableCard {
-                                Layout.fillWidth: true
-                                device: modelData
-                            }
+                            delegate: bluetoothAvailableCard
+                            Layout.fillWidth: true
+                            device: modelData
                         }
                     }
                 }
@@ -178,178 +350,6 @@ Item {
                     text: Translation.tr("Bluetooth disabled")
                     font.pixelSize: Appearance.font.pixelSize.normal
                     color: Appearance.colors.colSubtext
-                }
-            }
-        }
-    }
-}
-
-// Connected device card
-Item {
-    id: BluetoothDeviceCard
-    required property var device
-    Layout.fillWidth: true
-    implicitHeight: 56
-
-    property string batteryStr: device.battery !== undefined ? ` • ${Math.round(device.battery * 100)}%` : ""
-
-    Rectangle {
-        anchors.fill: parent
-        radius: 12
-        color: Appearance.colors.colLayer1
-        border.width: 1
-        border.color: Appearance.colors.colOutlineVariant
-
-        RowLayout {
-            anchors.fill: parent
-            Layout.leftMargin: 12
-            Layout.rightMargin: 12
-            spacing: 12
-
-            // Device icon
-            Rectangle {
-                Layout.alignment: Qt.AlignVCenter
-                implicitWidth: 40
-                implicitHeight: 40
-                radius: 20
-                color: Appearance.colors.colPrimary
-                opacity: 0.15
-
-                MaterialSymbol {
-                    anchors.centerIn: parent
-                    text: device.icon ?? "bluetooth"
-                    iconSize: 20
-                    fill: 1
-                    color: Appearance.colors.colPrimary
-                }
-            }
-
-            // Device info
-            ColumnLayout {
-                Layout.fillWidth: true
-                spacing: -2
-
-                StyledText {
-                    Layout.fillWidth: true
-                    text: device.name ?? device.alias ?? Translation.tr("Unknown Device")
-                    font.pixelSize: Appearance.font.pixelSize.normal
-                    font.weight: Font.Medium
-                    color: Appearance.colors.colOnLayer0
-                }
-
-                StyledText {
-                    Layout.fillWidth: true
-                    text: `${device.mac ?? ""}${batteryStr}`
-                    font.pixelSize: Appearance.font.pixelSize.smaller
-                    color: Appearance.colors.colSubtext
-                }
-            }
-
-            // Actions
-            RowLayout {
-                spacing: 4
-
-                MouseArea {
-                    Layout.preferredWidth: 36
-                    Layout.preferredHeight: 36
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: BluetoothStatus.toggleConnect(device.mac)
-                    hoverEnabled: true
-                    MaterialSymbol {
-                        anchors.centerIn: parent
-                        text: device.connected ? "bluetooth_connected" : "bluetooth_disabled"
-                        iconSize: 20
-                        fill: 1
-                        color: device.connected ? Appearance.colors.colPrimary : Appearance.colors.colSubtext
-                    }
-                }
-
-                MouseArea {
-                    Layout.preferredWidth: 36
-                    Layout.preferredHeight: 36
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: BluetoothStatus.removeDevice(device.mac)
-                    MaterialSymbol {
-                        anchors.centerIn: parent
-                        text: "delete"
-                        iconSize: 18
-                        fill: 1
-                        color: Appearance.colors.colSubtext
-                    }
-                }
-            }
-        }
-    }
-}
-
-// Available device card
-Item {
-    id: BluetoothAvailableCard
-    required property var device
-    Layout.fillWidth: true
-    implicitHeight: 56
-
-    Rectangle {
-        anchors.fill: parent
-        radius: 12
-        color: Appearance.colors.colLayer1
-        border.width: 1
-        border.color: Appearance.colors.colOutlineVariant
-
-        RowLayout {
-            anchors.fill: parent
-            Layout.leftMargin: 12
-            Layout.rightMargin: 12
-            spacing: 12
-
-            Rectangle {
-                Layout.alignment: Qt.AlignVCenter
-                implicitWidth: 40
-                implicitHeight: 40
-                radius: 20
-                color: Appearance.colors.colPrimary
-                opacity: 0.15
-
-                MaterialSymbol {
-                    anchors.centerIn: parent
-                    text: device.icon ?? "bluetooth"
-                    iconSize: 20
-                    fill: 1
-                    color: Appearance.colors.colPrimary
-                }
-            }
-
-            ColumnLayout {
-                Layout.fillWidth: true
-                spacing: -2
-
-                StyledText {
-                    Layout.fillWidth: true
-                    text: device.name ?? device.alias ?? Translation.tr("Unknown Device")
-                    font.pixelSize: Appearance.font.pixelSize.normal
-                    font.weight: Font.Medium
-                    color: Appearance.colors.colOnLayer0
-                }
-
-                StyledText {
-                    Layout.fillWidth: true
-                    text: device.mac ?? ""
-                    font.pixelSize: Appearance.font.pixelSize.smaller
-                    color: Appearance.colors.colSubtext
-                }
-            }
-
-            MouseArea {
-                Layout.preferredWidth: 36
-                Layout.preferredHeight: 36
-                cursorShape: Qt.PointingHandCursor
-                onClicked: BluetoothStatus.pair(device.mac)
-                MaterialSymbol {
-                    anchors.centerIn: parent
-                    text: "add"
-                    iconSize: 20
-                    fill: 1
-                    color: Appearance.colors.colPrimary
                 }
             }
         }

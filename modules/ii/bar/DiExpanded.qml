@@ -1,21 +1,28 @@
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
+import QtQuick.Effects
+import Qt5Compat.GraphicalEffects
 import Quickshell.Hyprland
 import Quickshell.Services.UPower
 import qs
 import qs.services
 import qs.modules.common
 import qs.modules.common.widgets
+import qs.modules.ii.bar
 
 Item {
     id: root
     required property Item di
     property bool mirrored: di.mirrored
 
-    readonly property real panelWidth: 420
-    readonly property real panelHeight: 520
-    readonly property real cornerRadius: 20
+    // Style system
+    readonly property var islandStyle: IslandStyles
+    readonly property int activeStyle: Config.options.bar.dynamicIsland.style ?? 0
+
+    readonly property real panelWidth: islandStyle.panelWidth
+    readonly property real panelHeight: islandStyle.panelHeight
+    readonly property real cornerRadius: islandStyle.expandedRadius
 
     // Animation for panel appearance
     property real panelOpacity: 0
@@ -23,10 +30,10 @@ Item {
     property bool panelVisible: false
 
     Behavior on panelOpacity {
-        NumberAnimation { duration: 180; easing.type: Easing.OutCubic }
+        NumberAnimation { duration: islandStyle.panelFadeDuration; easing.type: islandStyle.panelEasingOut }
     }
     Behavior on panelScale {
-        NumberAnimation { duration: 200; easing.type: Easing.OutCubic }
+        NumberAnimation { duration: islandStyle.panelScaleDuration; easing.type: islandStyle.panelEasingOut }
     }
 
     // Determine expand direction
@@ -62,19 +69,15 @@ Item {
         id: panelBg
         anchors.fill: parent
         radius: root.cornerRadius
-        color: Config.options.background.widgets.glass.enable
-            ? Appearance.colors.colUiBackground
-            : Qt.rgba(Appearance.colors.colUiBackground.r, Appearance.colors.colUiBackground.g, Appearance.colors.colUiBackground.b, 0.95)
-        border.width: Config.options.background.widgets.glass.enable ? 1 : 0
-        border.color: Config.options.background.widgets.glass.enable
-            ? Appearance.colors.colOutlineVariant
-            : "transparent"
+        color: root.islandStyle.panelBg
+        border.width: root.islandStyle.panelBorderWidth
+        border.color: root.islandStyle.panelBorder
         clip: true
 
         WindowGlass {
             anchors.fill: parent
             anchors.margins: -4
-            glassEnabled: Config.options.background.widgets.glass.enable
+            glassEnabled: Config.options.background.widgets.glass.enable && (root.activeStyle === 3 || root.activeStyle === 2)
             cardRadius: root.cornerRadius
             flareLeft: 0
             flareRight: 0
@@ -89,11 +92,11 @@ Item {
         color: "transparent"
         layer.enabled: true
         layer.effect: Qt5Compat.GraphicalEffects.DropShadow {
-            verticalOffset: 12
+            verticalOffset: root.islandStyle.shadowOffset
             horizontalOffset: 0
-            radius: 32
+            radius: root.islandStyle.shadowRadius
             samples: 16
-            color: Qt.rgba(0, 0, 0, 0.35)
+            color: root.islandStyle.panelShadow
             transparentBorder: true
         }
         visible: root.panelVisible
@@ -112,8 +115,8 @@ Item {
             Layout.fillWidth: true
             implicitHeight: 56
             color: "transparent"
-            border.width: Config.options.background.widgets.glass.enable ? 1 : 0
-            border.color: Appearance.colors.colOutlineVariant
+            border.width: root.islandStyle.panelBorderWidth
+            border.color: root.islandStyle.panelBorder
 
             RowLayout {
                 anchors.fill: parent
@@ -126,7 +129,7 @@ Item {
                     text: "nest_wifi_pro"
                     iconSize: 24
                     fill: 1
-                    color: Appearance.colors.colPrimary
+                    color: root.islandStyle.accentColor
                 }
 
                 ColumnLayout {
@@ -138,14 +141,14 @@ Item {
                         text: Translation.tr("Dynamic Island")
                         font.pixelSize: Appearance.font.pixelSize.normal
                         font.weight: Font.Medium
-                        color: Appearance.colors.colOnLayer0
+                        color: root.islandStyle.textColor
                     }
 
                     StyledText {
                         Layout.fillWidth: true
                         text: Translation.tr("Control Panel")
                         font.pixelSize: Appearance.font.pixelSize.smaller
-                        color: Appearance.colors.colSubtext
+                        color: root.islandStyle.subtextColor
                     }
                 }
 
@@ -269,6 +272,13 @@ Item {
                     reveal: Config.options.bar.dynamicIsland.showBluetooth
                     Layout.fillWidth: true
                     DiExpandedBluetoothSection { di: root.di }
+                }
+
+                // Otto Host Pair Section
+                Revealer {
+                    reveal: Config.options.bar.dynamicIsland.showOttoHostPair
+                    Layout.fillWidth: true
+                    DiExpandedOttoHostPairSection { di: root.di }
                 }
 
                 // Quick Actions Section

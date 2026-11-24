@@ -34,6 +34,10 @@ StyledPopup {
                 if (!usage.available) return Translation.tr("Daemon unreachable%1").arg(usage.host ? ` (${usage.host})` : "");
                 if (usage.totalSessions === 0) return Translation.tr("No agents");
                 return Translation.tr("%1 running of %2 agents").arg(usage.activeSessions).arg(usage.totalSessions);
+            case "otto-paired":
+                if (!usage.pairedHostOnline) return Translation.tr("Paired host offline");
+                if (usage.pairedHostAgentTotal === 0) return Translation.tr("No agents on remote");
+                return Translation.tr("%1 active of %2 agents").arg(usage.pairedHostActiveAgents).arg(usage.pairedHostAgentTotal);
             case "local":
                 if (!usage.available) return Translation.tr("No servers running");
                 return Translation.tr("%1 running, %2 models").arg(usage.totalRunning).arg(usage.totalModels);
@@ -52,6 +56,14 @@ StyledPopup {
         if (agent.requiresAttention) return Translation.tr("Attention");
         if (agent.pendingPermissions > 0) return Translation.tr("Permission needed");
         return agent.status === "running" ? Translation.tr("Working") : Translation.tr("Idle");
+    }
+
+    function remoteStatusIcon(status) {
+        return status === "running" ? "progress_activity" : (status === "failed" ? "error" : "schedule");
+    }
+
+    function remoteStatusLabel(status) {
+        return status === "running" ? Translation.tr("Running") : (status === "failed" ? Translation.tr("Failed") : Translation.tr("Idle"));
     }
 
     ColumnLayout {
@@ -117,8 +129,14 @@ StyledPopup {
                         color: Appearance.colors.colPrimary
                         text: {
                             const u = provider.modelData.usage;
-                            const needsData = provider.modelData.kind === "codex" || provider.modelData.kind === "otto" || provider.modelData.kind === "local";
-                            if (needsData && !u.available) return "—";
+                            const needsData = provider.modelData.kind === "codex" || provider.modelData.kind === "otto" || provider.modelData.kind === "otto-paired" || provider.modelData.kind === "local";
+                            if (needsData) {
+                                if (provider.modelData.kind === "otto-paired") {
+                                    return u.pairedHostOnline ? (u.pairedHostActiveAgents > 0 ? `${u.pairedHostActiveAgents}` : "0") : "—";
+                                }
+                                if (provider.modelData.kind === "local") return u.totalRunning > 0 ? `${u.totalRunning}` : "0";
+                                if (!u.available) return "—";
+                            }
                             if (provider.modelData.kind === "local") return u.totalRunning > 0 ? `${u.totalRunning}` : "0";
                             return `${Math.round(u.percentage * 100)}%`;
                         }
@@ -160,21 +178,21 @@ StyledPopup {
                     visible: {
                         if (provider.modelData.kind === "codex") return false;
                         if (provider.modelData.kind === "otto" && !provider.modelData.usage.available) return false;
-                        return provider.modelData.usage.activeSessions === 0;
+                        if (provider.modelData.kind === "otto-paired" && !provider.modelData.usage.pairedHostOnline) return false;
+                        return (provider.modelData.kind === "otto-paired" ? provider.modelData.usage.pairedHostActiveAgents : provider.modelData.usage.activeSessions) === 0;
                     }
                     icon: "bedtime"
-                    label: Translation.tr("No active sessions")
+                    label: provider.modelData.kind === "otto-paired" ? Translation.tr("No active remote agents") : Translation.tr("No active sessions")
                     value: ""
                 }
 
+                // Session/agent rows
                 Repeater {
-                    // Session/agent rows: Claude and OMP report "sessions",
-                    // Otto reports its managed agents.
-                    // Local LLMs report running models.
                     model: {
                         const u = provider.modelData.usage;
                         if (provider.modelData.kind === "codex") return [];
                         if (provider.modelData.kind === "otto") return u.agents ?? [];
+                        if (provider.modelData.kind === "otto-paired") return u.pairedHostAgents ?? [];
                         if (provider.modelData.kind === "local") return u.servers ? Object.entries(u.servers).filter(([,v]) => v.available).map(([k,v]) => ({name: k, status: v.running_models > 0 ? "running" : "idle", models: v.models?.length ?? 0})) : [];
                         return u.sessions ?? [];
                     }
@@ -185,12 +203,14 @@ StyledPopup {
                         Layout.rightMargin: 8
                         icon: {
                             if (provider.modelData.kind === "otto") return root.statusIcon(modelData);
+                            if (provider.modelData.kind === "otto-paired") return root.remoteStatusIcon(modelData.status);
                             if (provider.modelData.kind === "local") return modelData.status === "running" ? "memory" : "memory_off";
                             return modelData.status === "busy" ? "progress_activity" : "terminal";
                         }
                         label: modelData.name
                         value: {
                             if (provider.modelData.kind === "otto") return root.statusLabel(modelData);
+                            if (provider.modelData.kind === "otto-paired") return root.remoteStatusLabel(modelData.status);
                             if (provider.modelData.kind === "local") return modelData.status === "running" ? Translation.tr("%1 models").arg(modelData.models) : Translation.tr("Stopped");
                             return modelData.status === "busy" ? Translation.tr("Working") : Translation.tr("Idle");
                         }
@@ -244,6 +264,39 @@ StyledPopup {
                         const max = agents.reduce((m, a) => Math.max(m, a.contextPercent ?? 0), 0);
                         return `${Math.round(max * 100)}%`;
                     }
+                }
+
+                // Remote host token usage (Otto paired)
+                StyledPopupValueRow {
+                    Layout.fillWidth: true
+                    Layout.leftMargin: 8
+                    Layout.rightMargin: 8
+                    visible: provider.modelData.kind === "otto-paired" && provider.modelData.usage.pairedHostOnline && provider.modelData.usage.tokens > 0
+                    icon: "token"
+                    label: Translation.tr("Tokens (all remote agents)")
+                    value: root.formatTokens(provider.modelData.usage.tokens)
+                }
+
+                // Agent limit (Otto paired)
+                StyledPopupValueRow {
+                    Layout.fillWidth: true
+                    Layout.leftMargin: 8
+                    Layout.rightMargin: 8
+                    visible: provider.modelData.kind === "otto-paired" && provider.modelData.usage.pairedHostOnline && provider.modelData.usage.pairedHostAgentLimit > 0
+                    icon: "person_add"
+                    label: Translation.tr("Agent limit")
+                    value: `${provider.modelData.usage.pairedHostAgentUsed} / ${provider.modelData.usage.pairedHostAgentLimit}`
+                }
+
+                // Session limit (Otto paired)
+                StyledPopupValueRow {
+                    Layout.fillWidth: true
+                    Layout.leftMargin: 8
+                    Layout.rightMargin: 8
+                    visible: provider.modelData.kind === "otto-paired" && provider.modelData.usage.pairedHostOnline && provider.modelData.usage.pairedHostSessionLimit > 0
+                    icon: "hourglass_top"
+                    label: Translation.tr("Session limit")
+                    value: `${provider.modelData.usage.pairedHostSessionUsed} / ${provider.modelData.usage.pairedHostSessionLimit}`
                 }
 
                 // Top models (Oh My Pi)
