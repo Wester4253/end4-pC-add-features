@@ -17,7 +17,6 @@ NC='\033[0m'
 REPO_URL="https://github.com/Wester4253/end4-pC-add-features.git"
 REPO_BRANCH="main"
 CONFIG_DIR="$HOME/.config/quickshell"
-REPO_DIR="$CONFIG_DIR/end4-pC"
 BACKUP_DIR="$CONFIG_DIR/backups/update-$(date +%Y%m%d-%H%M%S)"
 
 # Helper functions
@@ -25,7 +24,7 @@ log() { echo -e "${BLUE}[INFO]${NC} $*"; }
 warn() { echo -e "${YELLOW}[WARN]${NC} $*"; }
 error() { echo -e "${RED}[ERROR]${NC} $*"; }
 success() { echo -e "${GREEN}[OK]${NC} $*"; }
-step() { echo -e "\n${CYAN}▶${NC} $*"; }
+step() { echo -e "\n${CYAN}\xe2\x96\xb6${NC} $*"; }
 
 # Check not root
 if [[ $EUID -eq 0 ]]; then
@@ -60,22 +59,16 @@ if [[ -d "$HOME/.config/hypr" ]]; then
 fi
 success "Backups saved to $BACKUP_DIR"
 
-# Clone/update repository
+# Clone/update repository to temp location (outside config dir to avoid rsync --delete issues)
 step "Updating end4-pC repository..."
-mkdir -p "$(dirname "$REPO_DIR")"
-if [[ -d "$REPO_DIR/.git" ]]; then
-    log "Repository exists, pulling latest changes..."
-    cd "$REPO_DIR"
-    git fetch origin
-    git reset --hard "origin/$REPO_BRANCH"
-    git clean -fd
-else
-    log "Cloning fresh repository..."
-    rm -rf "$REPO_DIR"
-    git clone --branch "$REPO_BRANCH" "$REPO_URL" "$REPO_DIR"
-    cd "$REPO_DIR"
-fi
-success "Repository updated at $REPO_DIR"
+TEMP_REPO_DIR=$(mktemp -d -t end4pc-update-XXXXXX)
+cleanup_temp() { rm -rf "$TEMP_REPO_DIR"; }
+trap cleanup_temp EXIT
+
+log "Cloning to temporary directory..."
+git clone --branch "$REPO_BRANCH" --depth 1 "$REPO_URL" "$TEMP_REPO_DIR"
+cd "$TEMP_REPO_DIR"
+success "Repository cloned to temp location"
 
 # Deploy quickshell config
 step "Deploying quickshell configuration..."
@@ -88,7 +81,7 @@ rsync -a --delete \
     --exclude='LICENSE' \
     --exclude='screenshots' \
     --exclude='.qmlformat.ini' \
-    "$REPO_DIR/" "$CONFIG_DIR/"
+    "$TEMP_REPO_DIR/" "$CONFIG_DIR/"
 
 # Ensure scripts are executable
 find "$CONFIG_DIR/scripts" -name "*.py" -exec chmod +x {} \; 2>/dev/null || true
@@ -252,31 +245,31 @@ fi
 # Summary
 echo ""
 echo -e "${GREEN}=========================================${NC}"
-echo -e "${GREEN}  ✅ UPDATE COMPLETE!${NC}"
+echo -e "${GREEN}  \xe2\x9c\x85 UPDATE COMPLETE!${NC}"
 echo -e "${GREEN}=========================================${NC}"
 echo ""
 echo "What was updated:"
-echo "  ✅ Quickshell config (Dynamic Island v2 with 6 styles)"
-echo "  ✅ Profile Manager (switch between dotfile configs)"
-echo "  ✅ Otto Host Pair (one-click Tailscale pairing)"
-echo "  ✅ Clipboard Favorites (SQLite-backed)"
-echo "  ✅ Visualizer styles: Bars, Dots, Wave, Mirror"
-echo "  ✅ All Python backends (AI, clipboard, search, profiles)"
-echo "  ✅ Hyprland config (if missing)"
+echo "  \xe2\x9c\x85 Quickshell config (Dynamic Island v2 with 6 styles)"
+echo "  \xe2\x9c\x85 Profile Manager (switch between dotfile configs)"
+echo "  \xe2\x9c\x85 Otto Host Pair (one-click Tailscale pairing)"
+echo "  \xe2\x9c\x85 Clipboard Favorites (SQLite-backed)"
+echo "  \xe2\x9c\x85 Visualizer styles: Bars, Dots, Wave, Mirror"
+echo "  \xe2\x9c\x85 All Python backends (AI, clipboard, search, profiles)"
+echo "  \xe2\x9c\x85 Hyprland config (if missing)"
 echo ""
 echo "New Features:"
-echo "  🎨 6 Dynamic Island styles (Default, Solid Black, Themed, Glass, Notch, Minimal)"
-echo "  📦 Profile Manager - switch complete dotfile setups from Settings"
-echo "  🔗 Otto Host Pair - pair with laptop over Tailscale in one click"
-echo "  ⭐ Clipboard Favorites - star entries, filter, search"
+echo "  \xf0\x9f\x8e\xa8 6 Dynamic Island styles (Default, Solid Black, Themed, Glass, Notch, Minimal)"
+echo "  \xf0\x9f\x93\xa6 Profile Manager - switch complete dotfile setups from Settings"
+echo "  \xf0\x9f\x94\x97 Otto Host Pair - pair with laptop over Tailscale in one click"
+echo "  \xe2\xad\x90 Clipboard Favorites - star entries, filter, search"
 echo ""
 echo "Next steps:"
 echo "  1. Press SUPER+SPACE for overview"
-echo "  2. Open Settings → Profiles tab to manage dotfile configs"
-echo "  3. Open Settings → Bar → Dynamic Island to choose island style"
-echo "  4. Enable Otto Host Pair in Settings → Otto Host Pair"
-echo "  5. Click Dynamic Island → Otto Host Pair section to pair devices"
+echo "  2. Open Settings \xe2\x86\x92 Profiles tab to manage dotfile configs"
+echo "  3. Open Settings \xe2\x86\x92 Bar \xe2\x86\x92 Dynamic Island to choose island style"
+echo "  4. Enable Otto Host Pair in Settings \xe2\x86\x92 Otto Host Pair"
+echo "  5. Click Dynamic Island \xe2\x86\x92 Otto Host Pair section to pair devices"
 echo ""
 echo "Recovery: cp -r $BACKUP_DIR/quickshell $CONFIG_DIR"
 echo ""
-success "Update complete! 🎉"
+success "Update complete! \xf0\x9f\x8e\x89"
