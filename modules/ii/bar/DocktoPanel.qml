@@ -334,7 +334,7 @@ Item {
                             IconImage {
                                 id: pinnedIcon
                                 anchors.centerIn: parent
-                                source: SystemAppearance.iconPath(
+                                source: Quickshell.iconPath(
                                     AppSearch.guessIcon(slotItem.appId), "image-missing")
                                 implicitSize: root.iconSize
                             }
@@ -440,7 +440,7 @@ Item {
                             IconImage {
                                 id: activeIcon
                                 anchors.centerIn: parent
-                                source: SystemAppearance.iconPath(
+                                source: Quickshell.iconPath(
                                     AppSearch.guessIcon(activeSlot.modelData.appId), "image-missing")
                                 implicitSize: root.iconSize
                             }

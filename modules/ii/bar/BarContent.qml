@@ -16,18 +16,9 @@ Item {
     readonly property real barPadding: 0
     readonly property bool isMaterial: Config.options.bar.cornerStyle === 3 || Config.options.bar.cornerStyle === 4
     readonly property bool isMaterialHug: Config.options.bar.cornerStyle === 4
-    readonly property bool isSplitHug: Config.options.bar.cornerStyle === 6
-    readonly property bool hasTabs: root.isMaterialHug || root.isSplitHug
-    readonly property bool useTabWrapper: root.isMaterial || root.isSplitHug
-    readonly property bool glassTabs: root.hasTabs && Config.options.background.widgets.glass.enable
-    readonly property real tabFlare: root.glassTabs ? Appearance.rounding.screenRounding : 0
-    readonly property bool glassHug: Config.options.bar.cornerStyle === 0 && Config.options.background.widgets.glass.enable && Config.options.bar.showBackground
-    readonly property real hugFlare: root.glassHug && !root.centerOnly ? Appearance.rounding.screenRounding : 0
-    readonly property real pillFlare: root.glassHug && root.centerOnly ? Appearance.rounding.screenRounding : 0
-    readonly property real splitGroupSpacing: Config.options.bar.borderless === "transparent" ? -7 : Config.options.bar.borderless === "segmented" ? -1 : 2
     readonly property color materialPillBgColor: (Config.options.bar.followFrameColor && Config.options.bar.frameColor)
         ? Appearance.getColorFromName(Config.options.bar.frameColor)
-        : Appearance.colors.colUiBackground
+        : Appearance.colors.colLayer0
     readonly property real centerPillX: centerPill.x
     readonly property real centerPillWidth: centerPill.width
     readonly property bool isPanel: Config.options.bar.cornerStyle === 5
@@ -83,32 +74,18 @@ Item {
     property var screen: root.QsWindow.window?.screen
     property real useShortenedForm: (Appearance.sizes.barHellaShortenScreenWidthThreshold >= screen?.width) ? 2 : (Appearance.sizes.barShortenScreenWidthThreshold >= screen?.width) ? 1 : 0
 
-
     Rectangle {
         id: barBackground
         anchors.fill: parent
         anchors.margins: Config.options.bar.cornerStyle === 1 ? Appearance.sizes.hyprlandGapsOut : 0
-        property color fill: (!centerOnly && Config.options.bar.showBackground && Config.options.bar.cornerStyle !== 2 && !root.useTabWrapper)
+        color: (!centerOnly && Config.options.bar.showBackground && Config.options.bar.cornerStyle !== 2 && !root.isMaterial)
             ? (Config.options.bar.followFrameColor
                 ? Appearance.getColorFromName(Config.options.bar.frameColor)
-                : Appearance.colors.colUiBackground)
+                : Appearance.colors.colLayer0)
             : "transparent"
-        color: Config.options.background.widgets.glass.enable && fill.a > 0 ? "transparent" : fill
         radius: Config.options.bar.cornerStyle === 1 ? Appearance.rounding.windowRounding : 0
         border.width: (!centerOnly && Config.options.bar.cornerStyle === 1) ? 1 : 0
         border.color: Config.options.bar.cornerStyle === 1 && !Config.options.bar.showBackground ? "transparent" : ColorUtils.transparentize(Appearance.colors.colLayer0Border, 0.8) 
-    }
-
-    WindowGlass {
-        anchors.fill: barBackground
-        anchors.topMargin: Config.options.bar.bottom ? -root.hugFlare : 0
-        anchors.bottomMargin: Config.options.bar.bottom ? 0 : -root.hugFlare
-        hangLeft: root.hugFlare
-        hangRight: root.hugFlare
-        edge: Config.options.bar.bottom ? 1 : 0
-        glassEnabled: barBackground.fill.a > 0
-        cardRadius: barBackground.radius
-        tint: barBackground.fill
     }
 
     // center-only
@@ -124,13 +101,12 @@ Item {
 
     RoundCorner {
         id: leftPillCorner
-        glass: true
-        visible: root.centerOnly && Config.options.bar.showBackground && Config.options.bar.cornerStyle === 0 && !root.glassHug
+        visible: root.centerOnly && Config.options.bar.showBackground && Config.options.bar.cornerStyle === 0 
         x: barContent.centerPillX - implicitSize
         implicitSize: Appearance.rounding.screenRounding
         color: Config.options.bar.followFrameColor
             ? Appearance.getColorFromName(Config.options.bar.frameColor)
-            : Appearance.colors.colUiBackground
+            : Appearance.colors.colLayer0
         corner: RoundCorner.CornerEnum.TopRight
 
         states: State {
@@ -155,21 +131,6 @@ Item {
 
     Rectangle {
         id: centerPill
-        WindowGlass {
-            anchors.fill: parent
-            anchors.leftMargin: -root.pillFlare
-            anchors.rightMargin: -root.pillFlare
-            flareLeft: root.pillFlare
-            flareRight: root.pillFlare
-            edge: Config.options.bar.bottom ? 1 : 0
-            glassEnabled: (parent?.fill.a ?? 0) > 0
-            cardRadius: parent?.radius ?? 0
-            topLeftRadius: parent && parent.topLeftRadius >= 0 ? parent.topLeftRadius : cardRadius
-            topRightRadius: parent && parent.topRightRadius >= 0 ? parent.topRightRadius : cardRadius
-            bottomLeftRadius: parent && parent.bottomLeftRadius >= 0 ? parent.bottomLeftRadius : cardRadius
-            bottomRightRadius: parent && parent.bottomRightRadius >= 0 ? parent.bottomRightRadius : cardRadius
-            tint: parent?.fill ?? 'transparent'
-        }
         visible: centerOnly && Config.options.bar.showBackground && Config.options.bar.cornerStyle !== 2 
         anchors.verticalCenter: parent.verticalCenter
         anchors.horizontalCenter: parent.horizontalCenter
@@ -177,11 +138,10 @@ Item {
             ? (Config.options.bar.cornerStyle === 1 ? middleRow.implicitWidth + 8 : middleRow.implicitWidth - 4)
             : middleRow.implicitWidth + 10
         height: GlobalStates.dynamicIslandEnabled ? parent.height : parent.height - (Config.options.bar.cornerStyle === 1 ? Appearance.sizes.hyprlandGapsOut * 2 : 0)
-        property color fill: root.useTabWrapper ? "transparent" : Config.options.bar.followFrameColor 
+        color: root.isMaterial ? "transparent" : Config.options.bar.followFrameColor 
             ? Appearance.getColorFromName(Config.options.bar.frameColor)
-            : Appearance.colors.colUiBackground
-        color: Config.options.background.widgets.glass.enable && fill.a > 0 ? "transparent" : fill
-        radius: Config.options.bar.cornerStyle === 1 || root.useTabWrapper ? Appearance.rounding.windowRounding : 0
+            : Appearance.colors.colLayer0
+        radius: Config.options.bar.cornerStyle === 1 || root.isMaterial ? Appearance.rounding.windowRounding : 0
         border.width: Config.options.bar.cornerStyle === 1 ? 1 : 0
         border.color: Appearance.colors.colLayer0Border
 
@@ -193,13 +153,12 @@ Item {
 
     RoundCorner {
         id: rightPillCorner
-        glass: true
-        visible: root.centerOnly && Config.options.bar.showBackground && Config.options.bar.cornerStyle === 0 && !root.glassHug
+        visible: root.centerOnly && Config.options.bar.showBackground && Config.options.bar.cornerStyle === 0
         x: barContent.centerPillX + barContent.centerPillWidth
         implicitSize: Appearance.rounding.screenRounding
         color: Config.options.bar.followFrameColor
             ? Appearance.getColorFromName(Config.options.bar.frameColor)
-            : Appearance.colors.colUiBackground
+            : Appearance.colors.colLayer0
         corner: RoundCorner.CornerEnum.TopLeft
 
         states: State {
@@ -227,56 +186,50 @@ Item {
         anchors.fill: barBackground
         anchors.margins: root.barPadding
 
+        readonly property real sideRoom: Math.max(0, contentContainer.width / 2 - absoluteCenter.width / 2 - 14)
+        readonly property real leftPush: Math.max(0, leftSection.width - contentContainer.sideRoom)
+        readonly property real rightPush: Math.max(0, rightSection.width - contentContainer.sideRoom)
+
         // Left
         Item {
+            id: leftSection
             anchors.left: parent.left
-            anchors.leftMargin: root.hasTabs ? 0 : (root.useTabWrapper ? (Config.options.hyprland.general.gapsOut || 5) : (Config.options.bar.cornerStyle === 1 ? 4 : Config.options.bar.cornerStyle === 5 ? 4 : 8))
+            anchors.leftMargin: root.isMaterialHug ? 0 : (root.isMaterial ? (Config.options.hyprland.general.gapsOut || 5) : (Config.options.bar.cornerStyle === 1 ? 4 : Config.options.bar.cornerStyle === 5 ? 4 : 8))
             anchors.top: parent.top
             anchors.bottom: parent.bottom
-            width: root.useTabWrapper ? (leftMaterialPill.width + (root.hasTabs && root.effectiveLeftLayout.length > 0 ? leftRightOutwardCorner.implicitSize : 0)) : leftRow.implicitWidth
+            width: root.isMaterial ? (leftMaterialPill.width + (root.isMaterialHug && root.effectiveLeftLayout.length > 0 ? leftRightOutwardCorner.implicitSize : 0)) : leftRow.implicitWidth
+            opacity: contentContainer.leftPush > 0 ? Math.max(0.25, 1 - contentContainer.leftPush / 120) : 1
+            transform: Translate { x: -contentContainer.leftPush }
+
+            Behavior on opacity {
+                NumberAnimation { duration: 260; easing.type: Easing.OutCubic }
+            }
 
             // Material pill wrapper
             Rectangle {
                 id: leftMaterialPill
-                WindowGlass {
-                    anchors.fill: parent
-                    anchors.rightMargin: -root.tabFlare
-                    anchors.topMargin: Config.options.bar.bottom ? -root.tabFlare : 0
-                    anchors.bottomMargin: Config.options.bar.bottom ? 0 : -root.tabFlare
-                    flareRight: root.tabFlare
-                    hangLeft: root.tabFlare
-                    edge: Config.options.bar.bottom ? 1 : 0
-                    glassEnabled: (parent?.fill.a ?? 0) > 0
-                    cardRadius: parent?.radius ?? 0
-                    topLeftRadius: parent && parent.topLeftRadius >= 0 ? parent.topLeftRadius : cardRadius
-                    topRightRadius: parent && parent.topRightRadius >= 0 ? parent.topRightRadius : cardRadius
-                    bottomLeftRadius: parent && parent.bottomLeftRadius >= 0 ? parent.bottomLeftRadius : cardRadius
-                    bottomRightRadius: parent && parent.bottomRightRadius >= 0 ? parent.bottomRightRadius : cardRadius
-                    tint: parent?.fill ?? 'transparent'
-                }
-                visible: root.useTabWrapper && root.effectiveLeftLayout.length > 0
-                anchors.left: root.hasTabs ? parent.left : undefined
-                anchors.top: (root.hasTabs && !Config.options.bar.bottom) ? parent.top : undefined
-                anchors.bottom: (root.hasTabs && Config.options.bar.bottom) ? parent.bottom : undefined
-                anchors.centerIn: root.hasTabs ? undefined : parent
-                width: leftMaterialRow.implicitWidth + (root.hasTabs ? 16 : 10)
-                height: root.hasTabs ? parent.height : leftMaterialRow.implicitHeight
-                radius: root.hasTabs ? 0 : Appearance.rounding.full
-                property color fill: root.materialPillBgColor
-                color: Config.options.background.widgets.glass.enable && fill.a > 0 ? "transparent" : fill
+                visible: root.isMaterial && root.effectiveLeftLayout.length > 0
+                anchors.left: root.isMaterialHug ? parent.left : undefined
+                anchors.top: (root.isMaterialHug && !Config.options.bar.bottom) ? parent.top : undefined
+                anchors.bottom: (root.isMaterialHug && Config.options.bar.bottom) ? parent.bottom : undefined
+                anchors.centerIn: root.isMaterialHug ? undefined : parent
+                width: leftMaterialRow.implicitWidth + (root.isMaterialHug ? 16 : 10)
+                height: root.isMaterialHug ? parent.height : leftMaterialRow.implicitHeight
+                radius: root.isMaterialHug ? 0 : Appearance.rounding.full
+                color: root.materialPillBgColor
 
-                topLeftRadius: root.hasTabs ? 0 : radius
-                bottomLeftRadius: root.hasTabs ? 0 : radius
-                topRightRadius: (root.hasTabs && Config.options.bar.bottom) ? Appearance.rounding.screenRounding : (root.hasTabs ? 0 : radius)
-                bottomRightRadius: (root.hasTabs && !Config.options.bar.bottom) ? Appearance.rounding.screenRounding : (root.hasTabs ? 0 : radius)
+                topLeftRadius: root.isMaterialHug ? 0 : radius
+                bottomLeftRadius: root.isMaterialHug ? 0 : radius
+                topRightRadius: (root.isMaterialHug && Config.options.bar.bottom) ? Appearance.rounding.screenRounding : (root.isMaterialHug ? 0 : radius)
+                bottomRightRadius: (root.isMaterialHug && !Config.options.bar.bottom) ? Appearance.rounding.screenRounding : (root.isMaterialHug ? 0 : radius)
 
                 RowLayout {
                     id: leftMaterialRow
                     anchors.centerIn: parent
-                    spacing: root.isSplitHug ? root.splitGroupSpacing : 3
+                    spacing: 3
 
                     Repeater {
-                        model: root.effectiveLeftLayout
+                        model: root.isMaterial ? root.effectiveLeftLayout : []
                         delegate: leftMaterialGroupDelegate
                     }
 
@@ -293,10 +246,8 @@ Item {
                                 Layout.fillHeight: true
                                 source: root.getWidgetUrl(modelData)
                                 onLoaded: {
-                                if (item && item.hasOwnProperty("mirrored")) {
-                                    try {
-                                        item.mirrored = root.getMirroredForIndex(root.effectiveLeftLayout, index);
-                                    } catch (e) {}
+                                    if (item && item.hasOwnProperty("mirrored"))
+                                        item.mirrored = root.getMirroredForIndex(root.effectiveLeftLayout, index)
                                 }
                             }
                         }
@@ -306,8 +257,7 @@ Item {
 
             RoundCorner {
                 id: leftRightOutwardCorner
-                glass: true
-                visible: root.hasTabs && !root.glassTabs && root.effectiveLeftLayout.length > 0
+                visible: root.isMaterialHug && root.effectiveLeftLayout.length > 0
                 anchors.left: leftMaterialPill.right
                 anchors.top: !Config.options.bar.bottom ? parent.top : undefined
                 anchors.bottom: Config.options.bar.bottom ? parent.bottom : undefined
@@ -319,7 +269,7 @@ Item {
             // Non-material layout
             RowLayout {
                 id: leftRow
-                visible: !root.useTabWrapper
+                visible: !root.isMaterial
                 anchors.fill: parent
                 spacing: Config.options.bar.borderless === "transparent" ? -7
                     : (Config.options?.bar.borderless === "segmented" && root.isPanel) ? 3
@@ -327,7 +277,7 @@ Item {
                     : root.isPanel ? 4 : 2
 
                 Repeater {
-                    model: root.effectiveLeftLayout
+                    model: root.isMaterial ? [] : root.effectiveLeftLayout
                     delegate: leftBarGroupDelegate
                 }
 
@@ -342,11 +292,8 @@ Item {
                             Layout.fillHeight: true
                             source: root.getWidgetUrl(modelData)
                             onLoaded: {
-                                if (item && item.hasOwnProperty("mirrored")) {
-                                    try {
-                                        item.mirrored = root.getMirroredForIndex(root.effectiveLeftLayout, index);
-                                    } catch (e) {}
-                                }
+                                if (item && item.hasOwnProperty("mirrored"))
+                                    item.mirrored = root.getMirroredForIndex(root.effectiveLeftLayout, index)
                             }
                         }
                     }
@@ -360,11 +307,8 @@ Item {
                         Layout.alignment: Qt.AlignVCenter
                         source: root.getWidgetUrl(modelData)
                         onLoaded: {
-                            if (item && item.hasOwnProperty("mirrored")) {
-                                try {
-                                    item.mirrored = root.getMirroredForIndex(root.effectiveLeftLayout, index);
-                                } catch (e) {}
-                            }
+                            if (item && item.hasOwnProperty("mirrored"))
+                                item.mirrored = root.getMirroredForIndex(root.effectiveLeftLayout, index)
                         }
                     }
                 }
@@ -375,7 +319,7 @@ Item {
         Item {
             id: absoluteCenter
             anchors.centerIn: parent
-            width: root.useTabWrapper ? (centerMaterialPill.width + (root.hasTabs && root.effectiveMiddleLayout.length > 0 ? (centerLeftOutwardCorner.implicitSize + centerRightOutwardCorner.implicitSize) : 0)) : middleRow.implicitWidth
+            width: root.isMaterial ? (centerMaterialPill.width + (root.isMaterialHug && root.effectiveMiddleLayout.length > 0 ? (centerLeftOutwardCorner.implicitSize + centerRightOutwardCorner.implicitSize) : 0)) : middleRow.implicitWidth
             height: parent.height
 
             // Dynamic Island — left
@@ -400,8 +344,7 @@ Item {
 
             RoundCorner {
                 id: centerLeftOutwardCorner
-                glass: true
-                visible: root.hasTabs && !root.glassTabs && root.effectiveMiddleLayout.length > 0
+                visible: root.isMaterialHug && root.effectiveMiddleLayout.length > 0
                 anchors.right: centerMaterialPill.left
                 anchors.top: !Config.options.bar.bottom ? parent.top : undefined
                 anchors.bottom: Config.options.bar.bottom ? parent.bottom : undefined
@@ -413,41 +356,26 @@ Item {
             // Material pill wrapper
             Rectangle {
                 id: centerMaterialPill
-                WindowGlass {
-                    anchors.fill: parent
-                    anchors.leftMargin: -root.tabFlare
-                    anchors.rightMargin: -root.tabFlare
-                    flareLeft: root.tabFlare
-                    flareRight: root.tabFlare
-                    edge: Config.options.bar.bottom ? 1 : 0
-                    glassEnabled: (parent?.fill.a ?? 0) > 0
-                    cardRadius: parent?.radius ?? 0
-                    topLeftRadius: parent && parent.topLeftRadius >= 0 ? parent.topLeftRadius : cardRadius
-                    topRightRadius: parent && parent.topRightRadius >= 0 ? parent.topRightRadius : cardRadius
-                    bottomLeftRadius: parent && parent.bottomLeftRadius >= 0 ? parent.bottomLeftRadius : cardRadius
-                    bottomRightRadius: parent && parent.bottomRightRadius >= 0 ? parent.bottomRightRadius : cardRadius
-                    tint: parent?.fill ?? 'transparent'
-                }
-                visible: root.useTabWrapper && root.effectiveMiddleLayout.length > 0
+                objectName: "dynamicIslandSurface"
+                visible: root.isMaterial && root.effectiveMiddleLayout.length > 0
                 anchors.centerIn: parent
-                width: centerMaterialRow.implicitWidth + (root.hasTabs ? 16 : 10)
-                height: root.hasTabs ? parent.height : centerMaterialRow.implicitHeight 
-                radius: root.hasTabs ? 0 : Appearance.rounding.full
-                property color fill: root.materialPillBgColor
-                color: Config.options.background.widgets.glass.enable && fill.a > 0 ? "transparent" : fill
+                width: centerMaterialRow.implicitWidth + (root.isMaterialHug ? 16 : 10)
+                height: root.isMaterialHug ? parent.height : centerMaterialRow.implicitHeight 
+                radius: root.isMaterialHug ? 0 : Appearance.rounding.full
+                color: root.materialPillBgColor
 
-                topLeftRadius: (root.hasTabs && Config.options.bar.bottom) ? Appearance.rounding.screenRounding : (root.hasTabs ? 0 : radius)
-                topRightRadius: (root.hasTabs && Config.options.bar.bottom) ? Appearance.rounding.screenRounding : (root.hasTabs ? 0 : radius)
-                bottomLeftRadius: (root.hasTabs && !Config.options.bar.bottom) ? Appearance.rounding.screenRounding : (root.hasTabs ? 0 : radius)
-                bottomRightRadius: (root.hasTabs && !Config.options.bar.bottom) ? Appearance.rounding.screenRounding : (root.hasTabs ? 0 : radius)
+                topLeftRadius: (root.isMaterialHug && Config.options.bar.bottom) ? Appearance.rounding.screenRounding : (root.isMaterialHug ? 0 : radius)
+                topRightRadius: (root.isMaterialHug && Config.options.bar.bottom) ? Appearance.rounding.screenRounding : (root.isMaterialHug ? 0 : radius)
+                bottomLeftRadius: (root.isMaterialHug && !Config.options.bar.bottom) ? Appearance.rounding.screenRounding : (root.isMaterialHug ? 0 : radius)
+                bottomRightRadius: (root.isMaterialHug && !Config.options.bar.bottom) ? Appearance.rounding.screenRounding : (root.isMaterialHug ? 0 : radius)
 
                 RowLayout {
                     id: centerMaterialRow
                     anchors.centerIn: parent
-                    spacing: root.isSplitHug ? root.splitGroupSpacing : 3
+                    spacing: 3
 
                     Repeater {
-                        model: root.effectiveMiddleLayout
+                        model: root.isMaterial ? root.effectiveMiddleLayout : []
                         delegate: middleMaterialGroupDelegate
                     }
 
@@ -465,11 +393,8 @@ Item {
                                 Layout.fillHeight: true
                                 source: root.getWidgetUrl(modelData)
                                 onLoaded: {
-                                    if (item && item.hasOwnProperty("mirrored")) {
-                                        try {
-                                            item.mirrored = root.getMirroredForIndex(root.effectiveMiddleLayout, index);
-                                        } catch (e) {}
-                                    }
+                                    if (item && item.hasOwnProperty("mirrored"))
+                                        item.mirrored = root.getMirroredForIndex(root.effectiveMiddleLayout, index)
                                 }
                             }
                         }
@@ -479,8 +404,7 @@ Item {
 
             RoundCorner {
                 id: centerRightOutwardCorner
-                glass: true
-                visible: root.hasTabs && !root.glassTabs && root.effectiveMiddleLayout.length > 0
+                visible: root.isMaterialHug && root.effectiveMiddleLayout.length > 0
                 anchors.left: centerMaterialPill.right
                 anchors.top: !Config.options.bar.bottom ? parent.top : undefined
                 anchors.bottom: Config.options.bar.bottom ? parent.bottom : undefined
@@ -492,7 +416,7 @@ Item {
             // Non-material layout
             RowLayout {
                 id: middleRow
-                visible: !root.useTabWrapper
+                visible: !root.isMaterial
                 anchors.fill: parent
                 spacing: Config.options.bar.borderless === "transparent" ? -7
                     : (Config.options?.bar.borderless === "segmented" && root.isPanel) ? 3
@@ -500,7 +424,7 @@ Item {
                     : root.isPanel ? 4 : 2
 
                 Repeater {
-                    model: root.effectiveMiddleLayout
+                    model: root.isMaterial ? [] : root.effectiveMiddleLayout
                     delegate: middleBarGroupDelegate
                 }
 
@@ -516,11 +440,8 @@ Item {
                             Layout.fillHeight: true
                             source: root.getWidgetUrl(modelData)
                             onLoaded: {
-                                if (item && item.hasOwnProperty("mirrored")) {
-                                    try {
-                                        item.mirrored = root.getMirroredForIndex(root.effectiveMiddleLayout, index);
-                                    } catch (e) {}
-                                }
+                                if (item && item.hasOwnProperty("mirrored"))
+                                    item.mirrored = root.getMirroredForIndex(root.effectiveMiddleLayout, index)
                             }
                         }
                     }
@@ -533,11 +454,8 @@ Item {
                         Layout.topMargin: Config.options.bar.bottom ? -5 : 3
                         source: root.getWidgetUrl(modelData)
                         onLoaded: {
-                            if (item && item.hasOwnProperty("mirrored")) {
-                                try {
-                                    item.mirrored = root.getMirroredForIndex(root.effectiveMiddleLayout, index);
-                                } catch (e) {}
-                            }
+                            if (item && item.hasOwnProperty("mirrored"))
+                                item.mirrored = root.getMirroredForIndex(root.effectiveMiddleLayout, index)
                         }
                     }
                 }
@@ -546,16 +464,22 @@ Item {
 
         // Right
         Item {
+            id: rightSection
             anchors.right: parent.right
-            anchors.rightMargin: root.hasTabs ? 0 : (root.useTabWrapper ? (Config.options.hyprland.general.gapsOut || 5) : (Config.options.bar.cornerStyle === 1 ? 4 : Config.options.bar.cornerStyle === 5 ? 4 : 8))
+            anchors.rightMargin: root.isMaterialHug ? 0 : (root.isMaterial ? (Config.options.hyprland.general.gapsOut || 5) : (Config.options.bar.cornerStyle === 1 ? 4 : Config.options.bar.cornerStyle === 5 ? 4 : 8))
             anchors.top: parent.top
             anchors.bottom: parent.bottom
-            width: root.useTabWrapper ? (rightMaterialPill.width + (root.hasTabs && root.effectiveRightLayout.length > 0 ? rightLeftOutwardCorner.implicitSize : 0)) : rightRow.implicitWidth
+            width: root.isMaterial ? (rightMaterialPill.width + (root.isMaterialHug && root.effectiveRightLayout.length > 0 ? rightLeftOutwardCorner.implicitSize : 0)) : rightRow.implicitWidth
+            opacity: contentContainer.rightPush > 0 ? Math.max(0.25, 1 - contentContainer.rightPush / 120) : 1
+            transform: Translate { x: contentContainer.rightPush }
+
+            Behavior on opacity {
+                NumberAnimation { duration: 260; easing.type: Easing.OutCubic }
+            }
 
             RoundCorner {
                 id: rightLeftOutwardCorner
-                glass: true
-                visible: root.hasTabs && !root.glassTabs && root.effectiveRightLayout.length > 0
+                visible: root.isMaterialHug && root.effectiveRightLayout.length > 0
                 anchors.right: rightMaterialPill.left
                 anchors.top: !Config.options.bar.bottom ? parent.top : undefined
                 anchors.bottom: Config.options.bar.bottom ? parent.bottom : undefined
@@ -567,45 +491,28 @@ Item {
             // Material pill wrapper
             Rectangle {
                 id: rightMaterialPill
-                WindowGlass {
-                    anchors.fill: parent
-                    anchors.leftMargin: -root.tabFlare
-                    anchors.topMargin: Config.options.bar.bottom ? -root.tabFlare : 0
-                    anchors.bottomMargin: Config.options.bar.bottom ? 0 : -root.tabFlare
-                    flareLeft: root.tabFlare
-                    hangRight: root.tabFlare
-                    edge: Config.options.bar.bottom ? 1 : 0
-                    glassEnabled: (parent?.fill.a ?? 0) > 0
-                    cardRadius: parent?.radius ?? 0
-                    topLeftRadius: parent && parent.topLeftRadius >= 0 ? parent.topLeftRadius : cardRadius
-                    topRightRadius: parent && parent.topRightRadius >= 0 ? parent.topRightRadius : cardRadius
-                    bottomLeftRadius: parent && parent.bottomLeftRadius >= 0 ? parent.bottomLeftRadius : cardRadius
-                    bottomRightRadius: parent && parent.bottomRightRadius >= 0 ? parent.bottomRightRadius : cardRadius
-                    tint: parent?.fill ?? 'transparent'
-                }
-                visible: root.useTabWrapper && root.effectiveRightLayout.length > 0
-                anchors.right: root.hasTabs ? parent.right : undefined
-                anchors.top: (root.hasTabs && !Config.options.bar.bottom) ? parent.top : undefined
-                anchors.bottom: (root.hasTabs && Config.options.bar.bottom) ? parent.bottom : undefined
-                anchors.centerIn: root.hasTabs ? undefined : parent
-                width: rightMaterialRow.implicitWidth + (root.hasTabs ? 16 : 10)
-                height: root.hasTabs ? parent.height : rightMaterialRow.implicitHeight 
-                radius: root.hasTabs ? 0 : Appearance.rounding.full
-                property color fill: root.materialPillBgColor
-                color: Config.options.background.widgets.glass.enable && fill.a > 0 ? "transparent" : fill
+                visible: root.isMaterial && root.effectiveRightLayout.length > 0
+                anchors.right: root.isMaterialHug ? parent.right : undefined
+                anchors.top: (root.isMaterialHug && !Config.options.bar.bottom) ? parent.top : undefined
+                anchors.bottom: (root.isMaterialHug && Config.options.bar.bottom) ? parent.bottom : undefined
+                anchors.centerIn: root.isMaterialHug ? undefined : parent
+                width: rightMaterialRow.implicitWidth + (root.isMaterialHug ? 16 : 10)
+                height: root.isMaterialHug ? parent.height : rightMaterialRow.implicitHeight 
+                radius: root.isMaterialHug ? 0 : Appearance.rounding.full
+                color: root.materialPillBgColor
 
-                topRightRadius: root.hasTabs ? 0 : radius
-                bottomRightRadius: root.hasTabs ? 0 : radius
-                topLeftRadius: (root.hasTabs && Config.options.bar.bottom) ? Appearance.rounding.screenRounding : (root.hasTabs ? 0 : radius)
-                bottomLeftRadius: (root.hasTabs && !Config.options.bar.bottom) ? Appearance.rounding.screenRounding : (root.hasTabs ? 0 : radius)
+                topRightRadius: root.isMaterialHug ? 0 : radius
+                bottomRightRadius: root.isMaterialHug ? 0 : radius
+                topLeftRadius: (root.isMaterialHug && Config.options.bar.bottom) ? Appearance.rounding.screenRounding : (root.isMaterialHug ? 0 : radius)
+                bottomLeftRadius: (root.isMaterialHug && !Config.options.bar.bottom) ? Appearance.rounding.screenRounding : (root.isMaterialHug ? 0 : radius)
 
                 RowLayout {
                     id: rightMaterialRow
                     anchors.centerIn: parent
-                    spacing: root.isSplitHug ? root.splitGroupSpacing : 3
+                    spacing: 3
 
                     Repeater {
-                        model: root.effectiveRightLayout
+                        model: root.isMaterial ? root.effectiveRightLayout : []
                         delegate: rightMaterialGroupDelegate
                     }
 
@@ -637,7 +544,7 @@ Item {
             // Non-material layout
             RowLayout {
                 id: rightRow
-                visible: !root.useTabWrapper
+                visible: !root.isMaterial
                 anchors.fill: parent
                 spacing: Config.options.bar.borderless === "transparent" ? -7
                     : (Config.options?.bar.borderless === "segmented" && root.isPanel) ? 3
@@ -645,7 +552,7 @@ Item {
                     : root.isPanel ? 4 : 2
 
                 Repeater {
-                    model: root.effectiveRightLayout
+                    model: root.isMaterial ? [] : root.effectiveRightLayout
                     delegate: rightBarGroupDelegate
                 }
 

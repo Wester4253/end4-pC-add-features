@@ -1166,8 +1166,6 @@ Item {
                                 }
                             }
 
-                            TouchpadScrollArea { flickable: railFlick }
-
                             ColumnLayout {
                                 id: railColumn
                                 width: railFlick.width
@@ -1825,8 +1823,6 @@ Item {
                             contentWidth: width
                             contentHeight: eqColumn.implicitHeight
                             boundsBehavior: Flickable.StopAtBounds
-
-                            TouchpadScrollArea { flickable: eqFlick }
 
                             ColumnLayout {
                                 id: eqColumn

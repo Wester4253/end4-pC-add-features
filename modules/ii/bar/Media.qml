@@ -35,14 +35,11 @@ Item {
     property string artDownloadLocation: Directories.coverArt
     property string artFileName:         Qt.md5(artUrl)
     property string artFilePath:         `${artDownloadLocation}/${artFileName}`
-    property bool   artDownloaded:       Boolean(root.artUrl && (root.artUrl.startsWith("data:") || root.artUrl.startsWith("file:/") || root.artUrl.startsWith("/")))
+    property bool   artDownloaded:       false
 
     property string displayedArtFilePath: {
-        if (!root.artUrl || root.artUrl.length === 0) return ""
-        if (root.artUrl.startsWith("data:")) return root.artUrl
-        if (root.artUrl.startsWith("file:/")) return root.artUrl
-        if (root.artUrl.startsWith("/")) return "file://" + root.artUrl
         if (!root.artDownloaded) return ""
+        if (root.artUrl.startsWith("file://")) return root.artUrl
         return Qt.resolvedUrl(artFilePath)
     }
 
@@ -51,18 +48,14 @@ Item {
             root.artDownloaded = false
             return
         }
-        if (root.artUrl.startsWith("data:") || root.artUrl.startsWith("file:/") || root.artUrl.startsWith("/")) {
+        if (root.artUrl.startsWith("file://")) {
             root.artDownloaded = true
             return
         }
-        if (root.artUrl.startsWith("http://") || root.artUrl.startsWith("https://")) {
-            artDownloader.targetFile  = root.artUrl
-            artDownloader.artFilePath = root.artFilePath
-            root.artDownloaded = false
-            artDownloader.running = true
-        } else {
-            root.artDownloaded = true
-        }
+        artDownloader.targetFile  = root.artUrl
+        artDownloader.artFilePath = root.artFilePath
+        root.artDownloaded = false
+        artDownloader.running = true
     }
 
     Process {

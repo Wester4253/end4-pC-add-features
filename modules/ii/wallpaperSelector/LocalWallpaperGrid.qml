@@ -125,17 +125,17 @@ Item {
     // ─── Dismiss overlay for context menu ───
     MouseArea {
         anchors.fill: parent
-        visible: contextMenu.open
+        visible: contextMenu.visible
         z: 105
         hoverEnabled: true
         acceptedButtons: Qt.LeftButton | Qt.RightButton
-        onClicked: contextMenu.open = false
+        onClicked: contextMenu.visible = false
     }
 
     // ─── Context menu ───
-    BouncyPopup {
+    Item {
         id: contextMenu
-        transformOrigin: Item.TopLeft
+        visible: false
         z: 110
 
         property string targetPath: ""
@@ -176,7 +176,7 @@ Item {
                         colBackground: Appearance.colors.colSecondaryContainer
                         onClicked: {
                             Wallpapers.moveToTop(contextMenu.targetIndex);
-                            contextMenu.open = false;
+                            contextMenu.visible = false;
                         }
                         contentItem: MaterialSymbol {
                             anchors.centerIn: parent
@@ -193,7 +193,7 @@ Item {
                         colBackground: Appearance.colors.colSecondaryContainer
                         onClicked: {
                             Wallpapers.moveWallpaper(contextMenu.targetIndex, Math.max(0, contextMenu.targetIndex - 1));
-                            contextMenu.open = false;
+                            contextMenu.visible = false;
                         }
                         contentItem: MaterialSymbol {
                             anchors.centerIn: parent
@@ -210,7 +210,7 @@ Item {
                         colBackground: Appearance.colors.colSecondaryContainer
                         onClicked: {
                             Wallpapers.moveWallpaper(contextMenu.targetIndex, Math.min(Wallpapers.wallpaperModel.count - 1, contextMenu.targetIndex + 1));
-                            contextMenu.open = false;
+                            contextMenu.visible = false;
                         }
                         contentItem: MaterialSymbol {
                             anchors.centerIn: parent
@@ -227,7 +227,7 @@ Item {
                         colBackground: Appearance.colors.colSecondaryContainer
                         onClicked: {
                             Wallpapers.moveToBottom(contextMenu.targetIndex);
-                            contextMenu.open = false;
+                            contextMenu.visible = false;
                         }
                         contentItem: MaterialSymbol {
                             anchors.centerIn: parent
@@ -248,7 +248,7 @@ Item {
                         buttonRadius: height / 2
                         colBackground: Appearance.colors.colErrorContainer
                         onClicked: {
-                            contextMenu.open = false;
+                            contextMenu.visible = false;
                             deleteProc.deleteFile(contextMenu.targetPath);
                         }
                         contentItem: MaterialSymbol {
@@ -264,7 +264,7 @@ Item {
                         implicitWidth: 32; implicitHeight: 32
                         buttonRadius: height / 2
                         colBackground: Appearance.colors.colLayer2
-                        onClicked: contextMenu.open = false
+                        onClicked: contextMenu.visible = false
                         contentItem: MaterialSymbol {
                             anchors.centerIn: parent
                             text: "close"
@@ -337,7 +337,7 @@ Item {
         onTriggered: grid.introDone = true
     }
 
-    StyledGridView {
+    GridView {
         id: grid
         property bool introDone: false
         property int introCounter: 0
@@ -381,16 +381,6 @@ Item {
 
         model: Wallpapers.wallpaperModel
         onModelChanged: { currentIndex = 0; Wallpapers.stopPreview(); }
-
-        Connections {
-            target: Wallpapers
-            function onResultsUpdated() {
-                if (Wallpapers.searchQuery.trim().length > 0) {
-                    grid.currentIndex = 0;
-                    Wallpapers.stopPreview();
-                }
-            }
-        }
 
         delegate: Item {
             id: delegateCell
@@ -442,7 +432,7 @@ Item {
             SequentialAnimation {
                 id: introAnim
                 PauseAnimation {
-                    duration: Math.max(0, Math.min(wallpaperItem.introOrder, 20)) * 16
+                    duration: Math.min(wallpaperItem.introOrder, 20) * 16
                 }
                 ParallelAnimation {
                     NumberAnimation {
@@ -528,7 +518,7 @@ Item {
                         contextMenu.targetY = pos.y;
                         contextMenu.targetPath = delegateCell.modelData.filePath;
                         contextMenu.targetIndex = delegateCell.index;
-                        contextMenu.open = true;
+                        contextMenu.visible = true;
                         return;
                     }
                     if (root.isDragging) {

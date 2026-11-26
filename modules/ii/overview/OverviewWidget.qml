@@ -74,12 +74,6 @@ Item {
     }
     Rectangle { // Background
         id: overviewBackground
-        WindowGlass {
-            anchors.fill: parent
-            glassEnabled: (parent?.color.a ?? 0) > 0
-            cardRadius: parent?.radius ?? 0
-            tint: parent?.color ?? 'transparent'
-        }
         property real padding: 10
         anchors.fill: parent
         anchors.margins: Appearance.sizes.elevationMargin
@@ -87,7 +81,7 @@ Item {
         implicitWidth: workspaceColumnLayout.implicitWidth + padding * 2
         implicitHeight: workspaceColumnLayout.implicitHeight + padding * 2
         radius: root.largeWorkspaceRadius + padding
-        color: Appearance.colors.colUiSurfaceContainer
+        color: Appearance.colors.colBackgroundSurfaceContainer
 
         Column { // Workspaces
             id: workspaceColumnLayout
@@ -202,6 +196,8 @@ Item {
                     scale: root.scale
                     widgetMonitor: HyprlandData.monitors.find(m => m.id == root.monitor.id)
                     windowData: windowByAddress[address]
+                    windowAddresses: root.windowAddresses
+                    windowByAddress: root.windowByAddress
                     workspaceWidth: root.workspaceImplicitWidth
                     workspaceHeight: root.workspaceImplicitHeight
 

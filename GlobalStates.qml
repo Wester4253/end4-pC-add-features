@@ -34,7 +34,6 @@ Singleton {
     property bool superReleaseMightTrigger: true
     property bool wallpaperSelectorOpen: false
     property bool workspaceShowNumbers: false
-    property bool projectDisplayOpen: false
     property var settingsTarget: null
 
     function openSettingsAt(pageId, label, section, subsection) {
@@ -56,20 +55,8 @@ Singleton {
     property real dropShelfY: 0
     property string osdIndicatorType: "volume"
     property bool barCenterOnly: false
-    property int dashboardPage: 0
-    property string dashboardGroup: ""
-    property var frameHover: ({})
-    function setFrameHover(screenName, side, hovered) {
-        const key = `${screenName}:${side}`;
-        if ((root.frameHover[key] ?? false) === hovered) return;
-        const next = Object.assign({}, root.frameHover);
-        next[key] = hovered;
-        root.frameHover = next;
-    }
-    function isFrameHovered(screenName, side) {
-        return root.frameHover[`${screenName}:${side}`] ?? false;
-    }
     property bool diSessionOpen: false
+    property var islandBuriedByScreen: ({})
     property bool startupLockPending: true
 
     Timer {
@@ -107,8 +94,8 @@ Singleton {
         { displayName: Translation.tr("Media Controls"),         value: "mediaControlsOpen" },
         { displayName: Translation.tr("Overlay"),                value: "overlayOpen" },
         { displayName: Translation.tr("ScreenShot Region"),        value: "regionSelectorOpen" },
-        { displayName: Translation.tr("Screen Translator"),        value: "screenTranslatorOpen" },
-        { displayName: Translation.tr("On-screen Keyboard"),       value: "oskOpen" },
+        { displayName: Translation.tr("Screen Translator"),      value: "screenTranslatorOpen" },
+        { displayName: Translation.tr("On-screen Keyboard"),     value: "oskOpen" },
         { displayName: Translation.tr("Session Menu"),           value: "sessionOpen" },
         { displayName: Translation.tr("Equalizer"),           value: "equalizerOpen" }
     ]
@@ -117,7 +104,7 @@ Singleton {
         if (!name || name === "none") return;
         root[name] = !root[name];
     }
-
+    
     onSidebarRightOpenChanged: {
         if (GlobalStates.sidebarRightOpen) {
             Notifications.timeoutAll();
@@ -154,19 +141,11 @@ Singleton {
         }
     }
 
-    CompositorGlobalShortcut {
+     CompositorGlobalShortcut {
         name: "centeredWallpaperToggle"
         description: "Toggles centered wallpaper"
         onPressed: {
             Config.options.background.centeredWallpaper = !Config.options.background.centeredWallpaper
-        }
-    }
-
-    CompositorGlobalShortcut {
-        name: "projectDisplay"
-        description: "Toggle Project Display & Audio flyout (Super+P)"
-        onPressed: {
-            root.projectDisplayOpen = !root.projectDisplayOpen;
         }
     }
 }

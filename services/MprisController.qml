@@ -31,8 +31,7 @@ Singleton {
 		return null;
 	}
 
-	property MprisPlayer manualPlayer: null;
-	property MprisPlayer activePlayer: manualPlayer ?? preferredPlayer ?? trackedPlayer ?? Mpris.players.values[0] ?? null;
+	property MprisPlayer activePlayer: preferredPlayer ?? trackedPlayer ?? Mpris.players.values[0] ?? null;
 	signal trackChanged(reverse: bool);
 
 	property bool __reverse: false;
@@ -72,7 +71,7 @@ Singleton {
 			Component.onDestruction: {
 				if (root.trackedPlayer == null || !root.trackedPlayer.isPlaying) {
 					for (const player of Mpris.players.values) {
-						if (player.isPlaying) {
+						if (player.playbackState.isPlaying) {
 							root.trackedPlayer = player;
 							break;
 						}
@@ -98,12 +97,15 @@ Singleton {
 		}
 
 		function onTrackArtUrlChanged() {
-			if (root.activePlayer?.uniqueId == root.activeTrack?.uniqueId && root.activePlayer?.trackArtUrl != root.activeTrack?.artUrl) {
+			// console.log("arturl:", activePlayer.trackArtUrl)
+			// root.updateTrack();
+			if (root.activePlayer.uniqueId == root.activeTrack.uniqueId && root.activePlayer.trackArtUrl != root.activeTrack.artUrl) {
 				// cantata likes to send cover updates *BEFORE* updating the track info.
 				// as such, art url changes shouldn't be able to break the reverse animation
 				const r = root.__reverse;
 				root.updateTrack();
 				root.__reverse = r;
+
 			}
 		}
 	}
