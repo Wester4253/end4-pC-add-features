@@ -157,7 +157,7 @@ RippleButton {
         Component {
             id: iconImageComponent
             IconImage {
-                source: SystemAppearance.iconPath(root.iconName, "image-missing")
+                source: Quickshell.iconPath(root.iconName, "image-missing")
                 width: 35
                 height: 35
             }
@@ -222,12 +222,6 @@ RippleButton {
                         url: modelData
                     }
                 }
-                MaterialSymbol {
-                    visible: root.entry?.pinned ?? false
-                    text: "keep"
-                    iconSize: Appearance.font.pixelSize.normal
-                    color: root.colForeground
-                }
                 StyledText { // Item name/content
                     Layout.fillWidth: true
                     id: nameText
@@ -249,7 +243,7 @@ RippleButton {
                 text: root.itemTags
             }
             Loader { // Clipboard image preview
-                active: !Config.options.search.clipboardPreviewPopup && root.cliphistRawString && Cliphist.entryIsImage(root.cliphistRawString)
+                active: root.cliphistRawString && Cliphist.entryIsImage(root.cliphistRawString)
                 sourceComponent: CliphistImage {
                     Layout.fillWidth: true
                     entry: root.cliphistRawString
@@ -384,7 +378,7 @@ RippleButton {
                             anchors.centerIn: parent
                             active: actionButton.iconType === LauncherSearchResult.IconType.System && actionButton.iconName !== ""
                             sourceComponent: IconImage {
-                                source: SystemAppearance.iconPath(actionButton.iconName)
+                                source: Quickshell.iconPath(actionButton.iconName)
                                 implicitSize: 20
                             }
                         }

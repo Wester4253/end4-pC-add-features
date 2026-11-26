@@ -143,14 +143,6 @@ ContentPage {
                         Config.options.search.sloppy = checked;
                     }
                 }
-                ConfigSwitch {
-                    buttonIcon: "preview"
-                    text: Translation.tr("Show clipboard preview popups")
-                    checked: Config.options.search.clipboardPreviewPopup
-                    onCheckedChanged: {
-                        Config.options.search.clipboardPreviewPopup = checked;
-                    }
-                }
             }
 
             ContentSubsection {
@@ -275,102 +267,6 @@ ContentPage {
                             repeat: false
                             onTriggered: {
                                 Config.options.search.engineBaseUrl = baseUrlField.value;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        ContentSection {
-            icon: "web_asset"
-            title: Translation.tr("Webapps")
-
-            GroupedList {
-                ConfigTextArea {
-                    id: webappUrlField
-                    Layout.fillWidth: true
-                    fieldWidth: 320
-                    fieldHeight: 64
-                    multiline: true
-                    buttonIcon: "language"
-                    text: Translation.tr("Website URL")
-                    placeholderText: Translation.tr("example.com (one per line)")
-                    confirmButtonVisible: webappUrlField.value.trim() !== "" && !Webapps.busy
-                    confirmButtonIcon: "add"
-                    onConfirmClicked: {
-                        Webapps.create(webappUrlField.value);
-                        webappUrlField.value = "";
-                    }
-                }
-            }
-
-            StyledText {
-                visible: Webapps.error !== ""
-                Layout.fillWidth: true
-                Layout.leftMargin: 8
-                text: Translation.tr("Could not create: %1").arg(Webapps.error)
-                color: Appearance.colors.colSubtext
-                wrapMode: Text.Wrap
-            }
-
-            ContentSubsection {
-                title: Translation.tr("Your webapps")
-                visible: Webapps.items.length > 0
-
-                GroupedList {
-                    ColumnLayout {
-                        spacing: 10
-
-                        Repeater {
-                            model: Webapps.items
-
-                            delegate: RowLayout {
-                                id: webappRow
-                                required property var modelData
-                                Layout.fillWidth: true
-                                Layout.leftMargin: 8
-                                Layout.rightMargin: 8
-                                spacing: 12
-
-                                Image {
-                                    Layout.preferredWidth: 28
-                                    Layout.preferredHeight: 28
-                                    source: webappRow.modelData.icon.startsWith("/") ? "file://" + webappRow.modelData.icon : ""
-                                    sourceSize: Qt.size(56, 56)
-                                    fillMode: Image.PreserveAspectFit
-                                    asynchronous: true
-                                }
-
-                                ColumnLayout {
-                                    Layout.fillWidth: true
-                                    spacing: 0
-
-                                    StyledText {
-                                        Layout.fillWidth: true
-                                        text: webappRow.modelData.name
-                                        color: Appearance.colors.colOnLayer1
-                                        elide: Text.ElideRight
-                                    }
-                                    StyledText {
-                                        Layout.fillWidth: true
-                                        text: webappRow.modelData.url
-                                        font.pixelSize: Appearance.font.pixelSize.smaller
-                                        color: Appearance.colors.colSubtext
-                                        elide: Text.ElideRight
-                                    }
-                                }
-
-                                RippleButtonWithIcon {
-                                    materialIcon: "open_in_new"
-                                    mainText: Translation.tr("Open")
-                                    onClicked: Webapps.open(webappRow.modelData.id)
-                                }
-                                RippleButtonWithIcon {
-                                    materialIcon: "delete"
-                                    mainText: Translation.tr("Remove")
-                                    onClicked: Webapps.remove(webappRow.modelData.id)
-                                }
                             }
                         }
                     }

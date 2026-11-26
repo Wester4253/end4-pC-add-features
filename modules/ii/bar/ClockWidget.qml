@@ -1,4 +1,3 @@
-
 import qs.modules.common
 import qs.modules.common.widgets
 import qs.services
@@ -145,26 +144,21 @@ BarWidgetSwitcher {
             StyledText {
                 visible: root.showDate
                 font.pixelSize: Appearance.font.pixelSize.small
-                color: Appearance.colors.colOnLayer0
+                color: Appearance.colors.colOnPrimaryContainer
                 text: DateTime.longDate
                 Layout.alignment: Qt.AlignVCenter
-                Layout.preferredHeight: 24
-                verticalAlignment: Text.AlignVCenter
                 leftPadding: 5
             }
 
             Rectangle {
                 implicitWidth: timeText.implicitWidth + 16
                 implicitHeight: 24
-                Layout.alignment: Qt.AlignVCenter
                 radius: Appearance.rounding.full
                 color: Appearance.colors.colPrimary
 
                 StyledText {
                     id: timeText
-                    anchors.fill: parent
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
+                    anchors.centerIn: parent
                     font.pixelSize: Appearance.font.pixelSize.smallie
                     color: Appearance.colors.colOnPrimary
                     font.weight: Font.Bold
@@ -185,9 +179,7 @@ BarWidgetSwitcher {
                 Layout.leftMargin: -10
                 StyledText {
                     id: ampmText
-                    anchors.fill: parent
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
+                    anchors.centerIn: parent
                     font.pixelSize: Appearance.font.pixelSize.smaller
                     color: Appearance.colors.colPrimary
                     text: pill.ampm
@@ -200,6 +192,10 @@ BarWidgetSwitcher {
         id: mouseArea
         anchors.fill: parent
         hoverEnabled: !Config.options.bar.tooltips.clickToShow
+        acceptedButtons: Qt.LeftButton | Qt.MiddleButton
+        onClicked: mouse => {
+            if (mouse.button === Qt.MiddleButton) GlobalStates.sidebarRightOpen = !GlobalStates.sidebarRightOpen
+        }
         ClockWidgetPopup {
             hoverTarget: mouseArea
             today: root.today

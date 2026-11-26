@@ -186,7 +186,7 @@ Item {
         anchors.fill: parent
         visible: !root.missingKey
 
-        StyledGridView {
+        GridView {
             id: grid
             anchors {
                 top: parent.top

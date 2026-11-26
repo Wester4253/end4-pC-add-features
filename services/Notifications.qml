@@ -33,6 +33,8 @@ Singleton {
         property string summary: notification?.summary ?? ""
         property double time
         property string urgency: notification?.urgency.toString() ?? "normal"
+        property bool hasInlineReply: notification?.hasInlineReply ?? false
+        property string inlineReplyPlaceholder: notification?.inlineReplyPlaceholder ?? ""
         property Timer timer
 
         onNotificationChanged: {
@@ -65,13 +67,9 @@ Singleton {
         running: true
         onTriggered: () => {
             const index = root.list.findIndex((notif) => notif.notificationId === notificationId);
-            // Already dismissed or discarded while the timer was running
-            if (index === -1) {
-                destroy();
-                return;
-            }
             const notifObject = root.list[index];
             print("[Notifications] Notification timer triggered for ID: " + notificationId + ", transient: " + notifObject?.isTransient);
+            if (!notifObject) { destroy(); return; }
             if (notifObject.isTransient) root.discardNotification(notificationId);
             else root.timeoutNotification(notificationId);
             destroy()
@@ -92,6 +90,19 @@ Singleton {
     Component {
         id: notifTimerComponent
         NotifTimer {}
+    }
+
+    Timer {
+        interval: 10000
+        running: root.popupList.length > 0
+        repeat: true
+        onTriggered: {
+            const now = Date.now();
+            root.popupList.forEach((notif) => {
+                if ((notif.urgency ?? "").toLowerCase() === "critical") return;
+                if (now - notif.time > 120000) root.timeoutNotification(notif.notificationId);
+            });
+        }
     }
 
     function stringifyList(list) {
@@ -161,10 +172,12 @@ Singleton {
         bodyMarkupSupported: true
         bodySupported: true
         imageSupported: true
+        inlineReplySupported: true
         keepOnReload: false
         persistenceSupported: true
 
         onNotification: (notification) => {
+            if (IslandEvents.handleNotification(notification)) return
             notification.tracked = true
             const newNotifObject = notifComponent.createObject(root, {
                 "notificationId": notification.id + root.idOffset,
@@ -176,10 +189,11 @@ Singleton {
             // Popup
             if (!root.popupInhibited) {
                 newNotifObject.popup = true;
-                if (notification.expireTimeout != 0) {
+                const critical = (notification.urgency?.toString() ?? "").toLowerCase() === "critical";
+                if (notification.expireTimeout != 0 || !critical) {
                     newNotifObject.timer = notifTimerComponent.createObject(root, {
                         "notificationId": newNotifObject.notificationId,
-                        "interval": notification.expireTimeout < 0 ? (Config?.options.notifications.timeout ?? 7000) : notification.expireTimeout,
+                        "interval": Math.max(notification.expireTimeout > 0 ? notification.expireTimeout : 0, IslandEvents.displayTime(newNotifObject)),
                     });
                 }
                 root.unread++;
@@ -192,6 +206,12 @@ Singleton {
 
     function markAllRead() {
         root.unread = 0;
+    }
+
+    function sendInlineReply(id, text) {
+        const serverNotif = notifServer.trackedNotifications.values.find((notif) => notif.id + root.idOffset === id);
+        if (serverNotif?.hasInlineReply) serverNotif.sendInlineReply(text);
+        root.discardNotification(id);
     }
 
     function discardNotification(id) {
@@ -304,6 +324,7 @@ Singleton {
                     maxId = Math.max(maxId, notif.notificationId)
                 })
 
+                console.log("[Notifications] File loaded")
                 root.idOffset = maxId
                 root.initDone()
             } catch (e) {

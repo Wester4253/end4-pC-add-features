@@ -120,10 +120,10 @@ Rectangle {
                 anchors.fill: parent
                 fillMode: Image.PreserveAspectCrop
                 source: root.imageSource
-                cache: true
+                cache: false
                 antialiasing: true
-                sourceSize.width: 480
-                sourceSize.height: 260
+                sourceSize.width: imageRect.width * 2
+                sourceSize.height: imageRect.height * 2
                 visible: root.imageSource !== ""
                 layer.enabled: true
                 layer.effect: OpacityMask {

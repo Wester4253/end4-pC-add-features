@@ -75,7 +75,6 @@ Item {
         component GlyphTile: Text {
             width: root.tileW
             height: root.tileH
-            renderType: Text.CurveRendering
             font {
                 family: "Google Sans Flex"
                 weight: 1000

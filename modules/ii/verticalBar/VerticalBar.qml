@@ -49,7 +49,6 @@ Scope {
                 }
                 property bool superShow: false
                 property bool mustShow: hoverRegion.containsMouse || superShow
-                    || (Config.options.bar.autoHide.enable && GlobalStates.isFrameHovered(barRoot.screen?.name, Config.options.bar.bottom ? "right" : "left"))
                 exclusionMode: ExclusionMode.Ignore
                 property int normalExclusiveZone: (Config?.options.bar.autoHide.enable && (!mustShow || !Config?.options.bar.autoHide.pushWindows))
                     ? 0
@@ -80,19 +79,6 @@ Scope {
                     hoverEnabled: true
                     anchors.fill: parent
 
-                    Binding {
-                        target: GlassLayers
-                        property: "barZone"
-                        value: Math.max(0, barRoot.exclusiveZone)
-                        restoreMode: Binding.RestoreBinding
-                    }
-                    Binding {
-                        target: GlassLayers
-                        property: "barEdge"
-                        value: Config.options.bar.bottom ? "right" : "left"
-                        restoreMode: Binding.RestoreBinding
-                    }
-
                     Item {
                         id: hoverMaskRegion
                         anchors {
@@ -104,13 +90,12 @@ Scope {
 
                     RoundCorner {
                         id: topPillCorner
-                        glass: true
-                        visible: barContent.centerOnly && showBarBackground && Config.options.bar.cornerStyle === 0 && !barContent.glassHug
+                        visible: barContent.centerOnly && showBarBackground && Config.options.bar.cornerStyle === 0
                         y: barContent.centerPillY - implicitSize
                         implicitSize: Appearance.rounding.screenRounding
                         color: Config.options.bar.followFrameColor
                             ? Appearance.getColorFromName(Config.options.bar.frameColor)
-                            : Appearance.colors.colUiBackground
+                            : Appearance.colors.colLayer0
                         corner: RoundCorner.CornerEnum.BottomLeft
 
                         states: State {
@@ -135,13 +120,12 @@ Scope {
 
                     RoundCorner {
                         id: bottomPillCorner
-                        glass: true
-                        visible: barContent.centerOnly && showBarBackground && Config.options.bar.cornerStyle === 0 && !barContent.glassHug
+                        visible: barContent.centerOnly && showBarBackground && Config.options.bar.cornerStyle === 0
                         y: barContent.centerPillY + barContent.centerPillHeight
                         implicitSize: Appearance.rounding.screenRounding
                         color: Config.options.bar.followFrameColor
                             ? Appearance.getColorFromName(Config.options.bar.frameColor)
-                            : Appearance.colors.colUiBackground
+                            : Appearance.colors.colLayer0
                         corner: RoundCorner.CornerEnum.TopLeft
 
                         states: State {
@@ -216,8 +200,8 @@ Scope {
                             right: undefined
                         }
                         width: Appearance.rounding.screenRounding
-                        active: !barContent.glassTabs && !barContent.glassHug && ((showBarBackground && Config.options.bar.cornerStyle === 0 && !barContent.centerOnly)
-                             || (Config.options.bar.cornerStyle === 4 || Config.options.bar.cornerStyle === 6))
+                        active: (showBarBackground && Config.options.bar.cornerStyle === 0 && !barContent.centerOnly)
+                             || (Config.options.bar.cornerStyle === 4)
 
                         states: State {
                             name: "right"
@@ -236,15 +220,14 @@ Scope {
                         sourceComponent: Item {
                             implicitHeight: Appearance.rounding.screenRounding
 
-                            readonly property color decoratorColor: (Config.options.bar.cornerStyle === 4 || Config.options.bar.cornerStyle === 6 || showBarBackground)
+                            readonly property color decoratorColor: (Config.options.bar.cornerStyle === 4 || showBarBackground)
                                 ? (Config.options.bar.followFrameColor && Config.options.bar.frameColor
                                     ? Appearance.getColorFromName(Config.options.bar.frameColor)
-                                    : Appearance.colors.colUiBackground)
+                                    : Appearance.colors.colLayer0)
                                 : "transparent"
 
                             RoundCorner {
                                 id: topCorner
-                                glass: true
                                 visible: Config.options.bar.cornerStyle === 0 || barContent.effectiveLeftLayout.length > 0
                                 anchors { left: parent.left; right: parent.right; top: parent.top }
                                 implicitSize: Appearance.rounding.screenRounding
@@ -260,7 +243,6 @@ Scope {
                             }
                             RoundCorner {
                                 id: bottomCorner
-                                glass: true
                                 visible: Config.options.bar.cornerStyle === 0 || barContent.effectiveRightLayout.length > 0
                                 anchors {
                                     bottom: parent.bottom

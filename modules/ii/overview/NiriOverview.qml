@@ -252,9 +252,6 @@ Item {
         interactive: !root.isDragging
         boundsBehavior: Flickable.StopAtBounds
         clip: true
-
-        TouchpadScrollArea { flickable: flickable }
-
         ScrollBar.vertical: ScrollBar { policy: ScrollBar.AlwaysOff }
 
         Column {
@@ -428,6 +425,8 @@ Item {
 
                                 toplevel: root.getToplevelForWindow(winContainer.win)
                                 windowData: winContainer.win
+                                windowAddresses: HyprlandData.addresses
+                                windowByAddress: HyprlandData.windowByAddress
                                 monitorData: winContainer.winMonData
                                 widgetMonitor: winContainer.winMonData
                                 scale: root.scale * rowItem.wsFitScale
